@@ -13,7 +13,6 @@ import {
   Calendar,
   Loader2,
   Download,
-  CloudDownload,
   CheckCircle,
 } from 'lucide-react';
 
@@ -236,7 +235,7 @@ export default function EngagementPage() {
               className="flex items-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
               style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
             >
-              <CloudDownload className={`w-4 h-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+              <Download className={`w-4 h-4 ${isSyncing ? 'animate-pulse' : ''}`} />
               {isSyncing ? 'SYNCING...' : 'SYNC LINKEDIN'}
             </button>
             <button
