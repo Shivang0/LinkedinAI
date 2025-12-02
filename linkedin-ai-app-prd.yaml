@@ -1,0 +1,1231 @@
+product:
+  name: LinkedIn AI Posting Application
+  version: 1.0
+  status: Ready for Development
+  
+overview:
+  description: AI-powered web app for creating, scheduling, and publishing LinkedIn posts with intelligent content generation
+  problem: Professionals struggle with consistent LinkedIn content creation due to time constraints and content ideation challenges
+  solution: AI assistant that understands user profile, generates personalized posts, and manages scheduling with clean UX
+  
+goals:
+  - Reduce post creation time by 70%
+  - Increase posting frequency 3x
+  - 80%+ satisfaction with AI content
+  - Seamless scheduling experience
+  
+target_users:
+  primary:
+    persona: Busy Professional
+    age: 28-40
+    needs: [consistent presence, minimal time, authentic content]
+  secondary:
+    persona: Content Creator
+    age: 25-35
+    needs: [high volume content, efficient workflow, performance tracking]
+
+out_of_scope:
+  - Multi-account management
+  - Other social platforms
+  - Advanced analytics dashboard
+  - AI image generation
+  - Video editing
+  - Comment automation
+  - CRM integrations
+
+pricing:
+  model: Freemium
+  free_tier:
+    features:
+      - 10 AI-generated posts per month
+      - Basic scheduling
+      - 7 days of scheduled posts
+      - Single calendar view (month)
+    limitations:
+      - No recurring templates
+      - No AI learning
+      - Basic support
+  
+  premium_tier:
+    price: $19/month or $190/year (save 17%)
+    features:
+      - Unlimited AI-generated posts
+      - Advanced scheduling
+      - Unlimited scheduled posts
+      - All calendar views (month/week/day)
+      - Recurring templates
+      - AI learning and personalization
+      - Priority support
+      - Advanced analytics
+      - Media library
+    
+  trial:
+    duration: 14 days
+    includes: All premium features
+    no_credit_card: true
+
+features:
+  payment:
+    provider: Stripe
+    priority: P0
+    
+    subscription_management:
+      plans: [Free, Premium Monthly, Premium Annual]
+      billing_cycle: Monthly or Annual
+      payment_methods: [Credit card, Debit card]
+      currencies: USD (expand later)
+      
+    checkout:
+      method: Stripe Checkout (hosted)
+      flow:
+        - User clicks "Upgrade to Premium"
+        - Redirect to Stripe Checkout
+        - Select plan (monthly/annual)
+        - Enter payment details
+        - Complete purchase
+        - Redirect back with success
+        - Auto-activate premium features
+      
+    customer_portal:
+      features:
+        - View current subscription
+        - Update payment method
+        - Change plan (upgrade/downgrade)
+        - Cancel subscription
+        - View invoices
+        - Download receipts
+      access: Link in Settings
+    
+    webhooks:
+      handle:
+        - checkout.session.completed (activate subscription)
+        - customer.subscription.updated (plan change)
+        - customer.subscription.deleted (cancellation)
+        - invoice.payment_succeeded (renewal)
+        - invoice.payment_failed (handle failure)
+      
+    trial_management:
+      duration: 14 days
+      start: On signup (auto)
+      conversion: Prompt 3 days before end
+      end_behavior: Downgrade to free tier
+      reminders: [7 days left, 3 days left, 1 day left]
+    
+    usage_limits:
+      enforcement:
+        - Track AI post generation count
+        - Block when limit reached (free tier)
+        - Show upgrade prompt
+        - Reset monthly on billing date
+      ui:
+        - Usage indicator in dashboard
+        - Progress bar showing remaining posts
+        - Clear upgrade CTA when approaching limit
+    
+    invoicing:
+      automatic: Yes
+      email: Send to user email
+      storage: Store in Stripe
+      access: Customer portal
+    
+    cancellation:
+      immediate_effect: false
+      access_until: End of billing period
+      data_retention: 90 days after cancellation
+      re_subscription: Restore previous data
+    
+    security:
+      pci_compliance: Stripe handles (no card storage)
+      webhook_verification: Verify Stripe signatures
+      idempotency: Use Stripe idempotency keys
+    
+    ui_integration:
+      upgrade_prompts:
+        locations: [Dashboard banner, Post limit reached, Settings]
+        messaging: "Unlock unlimited posts and advanced features"
+        cta: "Upgrade to Premium"
+      
+      billing_page:
+        location: Settings > Billing
+        displays:
+          - Current plan
+          - Next billing date
+          - Payment method (last 4 digits)
+          - Usage this period
+          - Upgrade/manage subscription buttons
+  
+  authentication:
+  authentication:
+    priority: P0
+    method: LinkedIn OAuth 2.0 only
+    permissions:
+      - r_liteprofile
+      - r_emailaddress
+      - w_member_social
+      - r_organization_social
+    flow:
+      - Landing page with "Sign in with LinkedIn"
+      - OAuth redirect
+      - Token storage (encrypted)
+      - Auto token refresh
+    edge_cases:
+      - OAuth failure: Return to landing with error
+      - Token expiry: Auto-refresh or re-auth prompt
+
+  profile_analysis:
+    priority: P0
+    auto_fetch:
+      - Profile info (headline, summary, experience)
+      - Last 50 posts
+      - Engagement metrics per post
+      - Connection demographics
+      - Skills, endorsements
+      - Industry, location
+    display:
+      - Loading screen with progress
+      - Key insights summary
+      - Top performing topics
+      - Best post formats
+      - Audience engagement patterns
+    schedule: Weekly re-analysis or on-demand
+    caching: Yes
+
+  ai_post_generation:
+    model:
+      provider: OpenAI
+      model: gpt-4o (latest)
+      fallback: gpt-4-turbo
+      
+    content_style:
+      priority: P0
+      requirements:
+        natural_writing:
+          - Conversational and authentic tone
+          - Vary sentence structure (short and long)
+          - Use contractions naturally (I'm, you're, don't)
+          - Include personal perspective and opinions
+          - Add occasional questions to engage readers
+          - Use simple, direct language
+          - Write like talking to a colleague
+        
+        avoid_ai_tells:
+          banned_patterns:
+            - Em dashes (—)
+            - Excessive hyphens for compound adjectives
+            - "Delve into", "Dive deep", "Unpack", "Leverage"
+            - "In today's world", "In conclusion", "Furthermore"
+            - "It's worth noting that", "At the end of the day"
+            - "Game-changer", "Revolutionary", "Transform"
+            - Overly formal transitions
+            - Lists starting with "Here's why" or "Here's how"
+            - Numbered lists without context
+            - Excessive buzzwords
+          
+          replace_with:
+            - Simple periods and commas
+            - Natural conjunctions (and, but, so)
+            - Direct statements
+            - Conversational transitions
+            - Specific, concrete examples
+            - Personal stories and experiences
+        
+        humanization_techniques:
+          - Start with personal anecdotes
+          - Use specific numbers and details
+          - Include mild imperfections (minor typos optional)
+          - Reference real experiences
+          - Express genuine emotions
+          - Use industry-specific jargon naturally
+          - Add context before conclusions
+          - Write incomplete thoughts occasionally
+          - Use parentheses for side thoughts
+          - Include rhetorical questions
+        
+        formatting:
+          - Short paragraphs (1-3 sentences)
+          - Line breaks for readability
+          - No bullet points unless user requests
+          - Natural emoji use (1-2 max, if appropriate)
+          - Start strong (no preamble)
+          - End with clear CTA or thought
+        
+        tone_variations:
+          professional:
+            - Clear and direct
+            - Expert but approachable
+            - Share insights, not platitudes
+            - Use "I" and "we" naturally
+          
+          casual:
+            - Friendly and relatable
+            - Conversational language
+            - Personal stories prominent
+            - Humor when appropriate
+          
+          inspirational:
+            - Authentic vulnerability
+            - Real struggles and lessons
+            - Specific examples
+            - Avoid cliches
+          
+          thought_provoking:
+            - Contrarian views welcome
+            - Challenge assumptions
+            - Ask hard questions
+            - Provide nuanced takes
+      
+      quality_checks:
+        - Perplexity score (vary sentence complexity)
+        - Burstiness (mix long and short sentences)
+        - Readability (Flesch score 60-80)
+        - Uniqueness (no template patterns)
+        - Engagement prediction
+      
+      prompting_strategy:
+        system_instructions: |
+          You are writing LinkedIn posts AS the user, not for them.
+          Write like a real professional sharing genuine insights.
+          No corporate speak. No AI cliches. No em dashes.
+          Use the user's actual experiences, industry, and voice.
+          Be specific, not generic. Show personality.
+          Write like you're talking to a friend who happens to be a colleague.
+        
+        context_injection:
+          - User's recent posts (style analysis)
+          - User's industry and role
+          - Current trends in their field
+          - Their top-performing content themes
+          - Their typical post length and format
+        
+        temperature: 0.9 (higher for creativity)
+        presence_penalty: 0.6 (reduce repetition)
+        frequency_penalty: 0.5 (avoid common phrases)
+    
+    auto_suggestions:
+      priority: P0
+      frequency: 3-5 posts daily
+      based_on:
+        - User profile and interests
+        - Past post performance
+        - Industry trends
+        - Recent news in user's field
+        - Connection activity
+      includes:
+        - Full post text
+        - 3-5 recommended hashtags
+        - Suggested posting time
+        - Content category tag
+        - Confidence score
+      ui:
+        - Dashboard "Suggested Posts" section
+        - Card layout with preview
+        - Actions: Edit & Schedule, Regenerate, Dismiss
+        - Filter by category
+    
+    custom_generation:
+      priority: P0
+      input_types:
+        - Text prompt
+        - Reference links (articles, posts)
+        - Key points to include
+        - Call-to-action
+      configuration:
+        tone: [Professional, Casual, Inspirational, Thought-Provoking]
+        length: [Short (100-150w), Medium (150-250w), Long (250-400w)]
+      generation_time: <10 seconds
+      ui:
+        - "Create New Post" button
+        - Modal with prompt textarea
+        - URL input for references
+        - Tone and length selectors
+        - Generate button
+        - Regenerate option
+    
+    editor:
+      priority: P0
+      features:
+        - Rich text formatting (bold, italic)
+        - Character counter (1300 max)
+        - Hashtag suggestions
+        - Emoji picker
+        - Mention preview
+        - Link preview
+        - Auto-save to drafts (30s)
+      ai_assistance:
+        - Make shorter
+        - Make more engaging
+        - Change tone
+        - Add call-to-action
+        - Highlight problematic content
+      preview: LinkedIn post preview mode
+      warnings: Alert if >1300 characters
+    
+    learning:
+      priority: P0
+      tracks:
+        - User edits to AI content
+        - Post performance metrics
+        - Accepted vs rejected suggestions
+        - Manual vs AI post performance
+        - Tone/style preferences
+      applies_to:
+        - Future suggestions
+        - Style matching
+        - Topic prioritization
+        - Optimal post length
+      insights: Weekly email with performance patterns
+      privacy: Per-user learning, not shared
+      opt_out: User can disable in settings
+
+  scheduling:
+    interface:
+      priority: P0
+      options:
+        - Post now
+        - Schedule for later (date + time picker)
+        - Add to queue
+      features:
+        - Date picker (calendar widget)
+        - Time picker
+        - Timezone display
+        - Visual confirmation
+        - Edit before publishing
+        - Cancel/delete scheduled
+        - Reschedule (drag-drop in calendar)
+      validation:
+        - No past scheduling
+        - Warning if <5 min ahead
+        - Warning if >3 months ahead
+        - Confirm multiple posts same time
+      error_handling:
+        - API failure: 3 retries with backoff
+        - Lock post during publishing
+        - Notify on final failure
+    
+    recurring_templates:
+      priority: P0
+      configuration:
+        - Template name
+        - Recurrence: [Daily, Weekly, Bi-weekly, Monthly]
+        - Days selection (for weekly)
+        - Content template with variables
+        - AI generation rules
+        - Start/end dates
+      workflow:
+        - AI generates 7-14 days ahead
+        - User reviews before scheduling
+        - Edit individual instances
+        - Manage/pause/delete series
+      ui:
+        - "Create Recurring Series" option
+        - Frequency selector
+        - Template builder
+        - Preview next 3 instances
+        - "Recurring Series" dashboard section
+      examples:
+        - Weekly tips every Monday
+        - Monthly reviews last Friday
+        - Bi-weekly success stories
+
+  attachments:
+    priority: P0
+    supported_types:
+      images:
+        formats: [JPEG, PNG, GIF]
+        max_size: 5MB
+        max_count: 9
+      videos:
+        formats: [MP4]
+        max_size: 200MB
+        max_duration: 10min
+      documents:
+        formats: [PDF]
+        max_size: 100MB
+      links: Auto-preview generation
+    
+    upload_methods:
+      - Drag and drop
+      - File browser
+      - URL input
+    
+    image_editing:
+      - Crop
+      - Alt text (accessibility)
+    
+    media_library:
+      - Reuse previous uploads
+      - Tagging/organization
+      - Search functionality
+    
+    link_handling:
+      - Auto preview generation
+      - Edit preview card (title, description, thumbnail)
+      - Multiple links support
+      - Keep original URL
+    
+    validation:
+      - File size checks
+      - Format validation
+      - Malware scanning
+      - Accessibility reminders
+
+  calendar:
+    views:
+      priority: P0
+      modes:
+        month:
+          layout: 7x4-6 grid
+          displays: Date, post dots (max 3 visible)
+          interaction: Click day to see all posts
+          hover: Preview post content
+        week:
+          layout: 7-day horizontal timeline
+          displays: Hourly breakdown, full post cards
+          interaction: Drag-drop scheduling
+        day:
+          layout: Hourly slots (00:00-23:59)
+          displays: Full post content
+          interaction: Click slot to create post
+      
+      navigation:
+        - Previous/next period buttons
+        - Jump to today
+        - Date picker
+      
+      visual_indicators:
+        - Current day highlighted
+        - Past dates grayed
+        - Status badges: Scheduled, Recurring, Draft, Published
+        - Attachment icons
+        - Multiple posts stacked
+      
+      interactions:
+        - Click post: View/Edit/Reschedule/Delete
+        - Click empty slot: Create new post
+        - Drag and drop: Reschedule
+        - Multi-select: Bulk actions
+    
+    filters:
+      priority: P0
+      options:
+        - Status: Scheduled, Published, Draft, Recurring
+        - Content type: Text only, Image, Video, Link
+        - Category/tag
+      search: Keyword search in scheduled posts
+      color_coding: User-defined by category
+
+  drafts:
+    priority: P0
+    auto_save: Every 30 seconds
+    states:
+      - AI Generated (unedited)
+      - In Progress (edited)
+      - Ready to Schedule
+    display:
+      - Post preview (first 100 chars)
+      - Created/last edited date
+      - Complete & Schedule action
+      - Delete option
+    ui:
+      - Drafts tab in navigation
+      - List or grid view
+      - Sort by: Date created, Last edited
+      - Quick filters: All, AI Generated, In Progress
+      - Bulk actions: Delete, Schedule multiple
+
+  publishing:
+    workflow:
+      priority: P0
+      stages:
+        - Draft → Edit
+        - Review → Schedule
+        - Scheduled → Publishing
+        - Published
+      pre_publish_checklist:
+        optional: true
+        items:
+          - Character count optimal
+          - Hashtags included
+          - Attachments added
+          - Appropriate time
+      confirmation: Final confirm before schedule
+    
+    execution:
+      timing: Within ±2 minutes of scheduled time
+      queue_system: BullMQ with Redis
+      retry_logic: 3 attempts with exponential backoff
+      error_handling:
+        - LinkedIn API failure: Auto retry
+        - Auth expired: Notify re-authentication
+        - Content violation: Show LinkedIn error
+        - Network timeout: Retry
+    
+    notifications:
+      in_app: Notification center
+      browser_push: Opt-in
+      email: Opt-in
+      types:
+        - Post published successfully
+        - Post failed (immediate)
+        - Daily summary
+        - Recurring series ready for review
+
+  settings:
+    content_preferences:
+      priority: P0
+      options:
+        default_tone: [Professional, Casual, Inspirational, Thought-Provoking, Custom]
+        default_length: [Short, Medium, Long]
+        topics_of_interest:
+          - Leadership & Management
+          - Career Development
+          - Industry News
+          - Personal Stories
+          - Technical/How-to
+          - Company Culture
+          - (Dynamic based on industry)
+        topics_to_avoid: []
+        hashtag_preferences:
+          auto_suggest: true
+          default_hashtags: []
+          max_per_post: 5
+        language: English
+    
+    notifications:
+      priority: P0
+      preferences:
+        - Post published successfully
+        - Post failed to publish
+        - Daily suggestions ready
+        - Weekly performance summary
+        - Recurring series review needed
+      delivery: [In-app, Browser push, Email]
+      quiet_hours: Configurable
+    
+    account:
+      priority: P0
+      actions:
+        - View connected account
+        - Disconnect account
+        - Refresh profile analysis
+        - Export data (posts, settings)
+        - Delete account and data
+      links:
+        - Privacy policy
+        - Terms of service
+
+design:
+  principles:
+    - Minimalistic and professional
+    - Clean spacious layouts
+    - No AI aesthetic (no gradients, glows, neon)
+    - No robot/AI imagery
+    - Trust-building, business-appropriate
+    - Max 3 clicks to any feature
+    - Clear visual hierarchy
+    - Progressive disclosure
+  
+  colors:
+    primary:
+      linkedin_blue: "#0A66C2"
+      dark_gray: "#2D2D2D"
+      medium_gray: "#666666"
+      light_gray: "#F3F6F8"
+    accent:
+      success_green: "#057642"
+      warning_orange: "#E37400"
+      error_red: "#CC1016"
+      info_blue: "#378FE9"
+    neutral:
+      white: "#FFFFFF"
+      off_white: "#FAFAFA"
+  
+  typography:
+    font_family: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    sizes:
+      h1: 32px
+      h2: 24px
+      h3: 18px
+      body: 16px
+      small: 14px
+      tiny: 12px
+    weights:
+      regular: 400
+      medium: 500
+      semibold: 600
+      bold: 700
+  
+  layout:
+    navigation:
+      desktop: Sidebar
+      mobile: Hamburger menu
+      items: [Dashboard, Create Post, Calendar, Drafts, Settings]
+      profile: Top right dropdown
+    
+    responsive:
+      approach: Mobile-first
+      breakpoints:
+        mobile: "<768px"
+        tablet: "768-1024px"
+        desktop: ">1024px"
+      touch_targets: 44px minimum
+  
+  components:
+    buttons:
+      primary: Solid LinkedIn blue, white text
+      secondary: White bg, blue border/text
+      tertiary: Text only
+      destructive: Red border/text
+      sizes: [Small 32px, Medium 40px, Large 48px]
+    
+    cards:
+      background: White
+      shadow: "0 2px 8px rgba(0,0,0,0.08)"
+      border_radius: 8px
+      padding: 16px
+    
+    forms:
+      input_height: 40px
+      textarea: Auto-expanding
+      label_position: Above input
+      error_display: Red border + message below
+    
+    modals:
+      max_width: 600px
+      backdrop: Semi-transparent
+      close: X button
+      actions: Primary right, Cancel left
+
+tech_stack:
+  frontend:
+    framework: React 18+ with TypeScript
+    styling: Tailwind CSS
+    state: React Query + Zustand
+    routing: React Router v6
+    datetime: date-fns
+    calendar: FullCalendar or custom
+    editor: TipTap or Lexical
+    forms: React Hook Form + Zod
+    payments: "@stripe/stripe-js, @stripe/react-stripe-js"
+  
+  backend:
+    runtime: Node.js 20+
+    framework: Express or Next.js API routes
+    language: TypeScript
+    database: PostgreSQL
+    cache: Redis
+    orm: Prisma
+    queue: BullMQ
+    storage: AWS S3 or Cloudflare R2
+    ai: OpenAI API (GPT-4o)
+    payments: stripe (Node SDK)
+  
+  auth:
+    method: LinkedIn OAuth 2.0
+    session: JWT tokens
+    storage: Encrypted at rest
+  
+  infrastructure:
+    frontend_host: Vercel
+    backend_host: Railway or Render
+    cdn: Cloudflare
+    monitoring: Sentry
+    analytics: PostHog or Plausible
+
+database:
+  users:
+    fields:
+      - id (uuid)
+      - linkedin_id (string)
+      - email (string)
+      - name (string)
+      - profile_url (string)
+      - access_token (encrypted)
+      - refresh_token (encrypted)
+      - token_expiry (timestamp)
+      - preferences (json)
+      - subscription_tier (enum: free, premium)
+      - trial_ends_at (timestamp, nullable)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+    indexes: [linkedin_id, email]
+  
+  subscriptions:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - stripe_customer_id (string)
+      - stripe_subscription_id (string)
+      - plan (enum: free, premium_monthly, premium_annual)
+      - status (enum: active, past_due, canceled, trialing)
+      - current_period_start (timestamp)
+      - current_period_end (timestamp)
+      - cancel_at_period_end (boolean)
+      - trial_start (timestamp, nullable)
+      - trial_end (timestamp, nullable)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+    indexes: [user_id, stripe_customer_id, stripe_subscription_id, status]
+  
+  usage_tracking:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - period_start (date)
+      - period_end (date)
+      - ai_posts_generated (int)
+      - posts_scheduled (int)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+    indexes: [user_id, period_start]
+  
+  invoices:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - stripe_invoice_id (string)
+      - amount (decimal)
+      - currency (string)
+      - status (enum: paid, open, void, uncollectible)
+      - invoice_pdf_url (string)
+      - paid_at (timestamp, nullable)
+      - created_at (timestamp)
+    indexes: [user_id, stripe_invoice_id]
+  
+  profiles:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - headline (text)
+      - summary (text)
+      - industry (string)
+      - location (string)
+      - profile_data (json)
+      - analysis_data (json)
+      - last_analyzed_at (timestamp)
+    indexes: [user_id]
+  
+  posts:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - content (text)
+      - status (enum: draft, scheduled, published, failed)
+      - scheduled_at (timestamp)
+      - published_at (timestamp)
+      - linkedin_post_id (string)
+      - linkedin_post_url (string)
+      - attachments (json)
+      - ai_generated (boolean)
+      - user_edited (boolean)
+      - recurring_series_id (fk, nullable)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+    indexes: [user_id, status, scheduled_at]
+  
+  recurring_series:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - name (string)
+      - template_content (text)
+      - recurrence_pattern (json)
+      - ai_instructions (text)
+      - active (boolean)
+      - start_date (date)
+      - end_date (date, nullable)
+      - created_at (timestamp)
+      - updated_at (timestamp)
+    indexes: [user_id, active]
+  
+  post_performance:
+    fields:
+      - id (uuid)
+      - post_id (fk)
+      - impressions (int)
+      - likes (int)
+      - comments (int)
+      - shares (int)
+      - synced_at (timestamp)
+    indexes: [post_id]
+  
+  learning_data:
+    fields:
+      - id (uuid)
+      - user_id (fk)
+      - post_id (fk)
+      - original_ai_content (text)
+      - edited_content (text)
+      - edit_type (string)
+      - performance_score (float)
+      - created_at (timestamp)
+    indexes: [user_id, post_id]
+
+apis:
+  linkedin:
+    auth: OAuth 2.0
+    endpoints:
+      - Profile API v2
+      - Share API v2
+      - UGC Posts API
+      - Analytics API
+    rate_limits: Respect throttling
+    error_handling: Retry with exponential backoff
+  
+  openai:
+    provider: OpenAI
+    model: gpt-4o
+    endpoint: Chat Completions API
+    features: [Streaming, Function calling, System instructions]
+    parameters:
+      temperature: 0.9
+      presence_penalty: 0.6
+      frequency_penalty: 0.5
+      max_tokens: 1000
+    rate_limits: 10000 TPM (tokens per minute)
+    error_handling: Retry with backoff, fallback to cached suggestions
+    cost_optimization:
+      - Cache common prompts
+      - Batch similar requests
+      - Use prompt compression
+      - Monitor token usage
+  
+  stripe:
+    mode: Live and Test
+    api_version: "2023-10-16"
+    endpoints:
+      - Checkout Sessions
+      - Subscriptions
+      - Customers
+      - Invoices
+      - Webhook Events
+    webhooks:
+      events:
+        - checkout.session.completed
+        - customer.subscription.created
+        - customer.subscription.updated
+        - customer.subscription.deleted
+        - invoice.payment_succeeded
+        - invoice.payment_failed
+      verification: Stripe signature verification required
+    security:
+      - Use restricted API keys
+      - Never expose secret key to frontend
+      - Verify webhook signatures
+      - Use idempotency keys
+    features:
+      - Stripe Checkout (hosted)
+      - Customer Portal (hosted)
+      - Automatic tax calculation
+      - Invoice management
+  
+  link_preview:
+    method: Web scraping
+    data: [Open Graph tags, Twitter Cards]
+    fallback: Basic HTML parsing
+    respect: robots.txt
+    caching: Yes
+
+jobs:
+  types:
+    - Publish scheduled post
+    - Generate daily suggestions
+    - Sync post performance
+    - Update profile analysis
+    - Generate recurring series posts
+    - Check trial expiration
+    - Process failed payments
+    - Send usage limit warnings
+    - Reset monthly usage counters
+  
+  publishing:
+    schedule: 5 min before target time
+    retries: 3 attempts (2, 5, 10 min delays)
+    failure_action: Store reason, notify user
+  
+  daily_suggestions:
+    schedule: "0 6 * * *"
+    count: 3-5 posts per user
+    respect_limits: Skip free users at limit
+  
+  performance_sync:
+    schedule: "0 2 * * *"
+    retention: Historical data for trends
+  
+  trial_expiration:
+    schedule: "0 8 * * *"
+    actions:
+      - Find trials ending in 7, 3, 1 days
+      - Send reminder emails
+      - Downgrade expired trials to free
+      - Update subscription status
+  
+  payment_processing:
+    schedule: "0 */4 * * *"
+    actions:
+      - Check failed payments
+      - Retry payment collection
+      - Suspend after 3 failures
+      - Send payment failure emails
+  
+  usage_reset:
+    schedule: "0 0 1 * *"
+    actions:
+      - Reset monthly AI post counter
+      - Create new usage tracking record
+      - Send usage summary email
+
+security:
+  authentication:
+    - LinkedIn OAuth only
+    - JWT: 15min access, 7day refresh
+    - HTTPS only
+    - CSRF protection
+    - Rate limiting
+  
+  data_storage:
+    - Encrypt tokens at rest
+    - Database encryption
+    - Secure env variables
+    - No sensitive data logging
+  
+  access_control:
+    - User-only data access
+    - Admin strict control
+    - API key rotation
+  
+  privacy:
+    collection: Necessary LinkedIn data only
+    consent: Required for AI learning
+    opt_out: Available
+    retention:
+      published: Indefinite (user can delete)
+      drafts: 90 days inactive
+      learning: While account active
+      deleted: Purge within 30 days
+    compliance: [GDPR, CCPA]
+    third_party: No sharing except AI processing
+
+performance:
+  requirements:
+    page_load: <2s
+    ai_generation: <10s
+    post_schedule: <1s
+    calendar_render: <1s
+  
+  scalability:
+    concurrent_users: 10000
+    scheduled_posts_per_day: 100000
+    optimization: [DB queries, CDN, Caching]
+  
+  reliability:
+    uptime_target: 99.5%
+    backups:
+      database: Daily
+      files: Continuous
+    failover: Yes
+    queue_redundancy: Yes
+
+metrics:
+  acquisition:
+    - New signups per week
+    - Landing to signup conversion
+    - Referral rate
+  
+  engagement:
+    - DAU/WAU/MAU
+    - Posts scheduled per user per week
+    - AI post acceptance rate
+    - Draft completion rate
+    - Calendar view usage
+  
+  retention:
+    - Day 1, 7, 30, 90 retention
+    - Churn rate
+    - Feature adoption rate
+  
+  quality:
+    - AI satisfaction score
+    - Time saved per post
+    - Publishing success rate
+    - Bug reports
+  
+  business:
+    - Revenue (if applicable)
+    - CAC
+    - LTV
+    - NPS
+
+risks:
+  technical:
+    linkedin_api_changes:
+      impact: High
+      mitigation: [Monitor announcements, Flexible abstraction, Manual posting fallback]
+    
+    ai_quality:
+      impact: Medium
+      mitigation: [Feedback loop, Easy editing, Set expectations, A/B testing]
+    
+    post_failures:
+      impact: High
+      mitigation: [Robust retry, Monitoring, Clear communication, Manual retry]
+  
+  business:
+    low_adoption:
+      impact: High
+      mitigation: [User research, Iterative MVP, Great onboarding, Fast feedback]
+    
+    competition:
+      impact: Medium
+      mitigation: [Superior AI, Clean UX, Unique features, Fast iteration]
+
+launch:
+  go_to_market:
+    pre_launch:
+      - Landing page with waitlist
+      - Content marketing (LinkedIn strategies)
+      - Build in public posts
+      - Email list building
+    
+    launch_day:
+      - Product Hunt launch
+      - LinkedIn influencer partnerships
+      - Press releases
+      - Free tier for first 1000 users
+    
+    post_launch:
+      - User testimonials
+      - Referral program
+      - Case studies
+      - Webinars
+  
+  success_criteria:
+    - 1000 signups in week 1
+    - 60% activation rate
+    - 5+ posts scheduled per active user
+    - 80% satisfaction score
+    - 70% day 7 retention
+
+decisions:
+  product:
+    - Pricing: Free (10 posts/mo) + Premium $19/mo or $190/year
+    - 14-day trial with no credit card required
+    - Personal profiles only (no company pages initially)
+    - Max scheduled posts: 100 per user
+    - Analytics: Basic in MVP (likes, comments, shares)
+    - Content moderation: Rate limiting only, no AI moderation
+  
+  technical:
+    - AI model: OpenAI GPT-4o (latest model)
+    - Content style: Natural, human-like (no AI tells)
+    - Processing: Real-time for generation, batch for suggestions
+    - Infrastructure: Serverless (Vercel + Railway)
+    - CDN: Cloudflare
+    - Payments: Stripe (checkout + customer portal)
+  
+  design:
+    - Light mode only (dark mode v2)
+    - No custom branding in MVP
+    - Onboarding: Quick tutorial with skip option
+    - Upgrade prompts: Non-intrusive banners
+
+next_steps:
+  immediate:
+    - Set up repositories (frontend, backend)
+    - Configure dev environment
+    - Set up LinkedIn Developer App
+    - Obtain OpenAI API key
+    - Set up Stripe account (test + live)
+    - Configure Stripe products and prices
+    - Set up webhook endpoints
+    - Create Figma designs
+    - Set up project management (Linear/Jira)
+  
+  week_1:
+    - Database schema implementation (including subscriptions)
+    - LinkedIn OAuth integration
+    - Stripe integration (checkout + webhooks)
+    - Basic frontend scaffold
+    - CI/CD pipeline
+  
+  week_2_4:
+    - Profile analysis feature
+    - AI post generation with OpenAI (auto + custom)
+    - Natural content generation system
+    - Post editor
+    - Draft management
+    - Usage tracking and limits
+  
+  week_5_8:
+    - Scheduling system
+    - Calendar views
+    - Recurring templates
+    - Attachment handling
+    - Subscription management UI
+    - Customer portal integration
+  
+  week_9_12:
+    - Publishing system
+    - Job queue
+    - Error handling
+    - Notifications
+    - Settings
+    - Payment flow testing
+    - Trial management
+    - Testing and QA
+  
+  launch:
+    - Beta testing (2 weeks)
+    - Bug fixes
+    - Performance optimization
+    - Stripe production mode
+    - Public launch
+
+glossary:
+  ai_suggested_post: Content auto-generated by AI based on user profile
+  draft: Unsaved or partially completed post
+  recurring_series: Template-based posts repeating on schedule
+  publishing_job: Background task posting to LinkedIn at scheduled time
+  profile_analysis: AI evaluation of user's LinkedIn activity
+  tone: Writing style preference
+  learning_loop: AI improvement from user edits and engagement
+  stripe_checkout: Hosted payment page by Stripe
+  customer_portal: Self-service subscription management by Stripe
+  usage_limit: Maximum AI posts allowed per billing period
+  trial_period: 14-day free access to premium features
+
+content_examples:
+  avoid_this:
+    bad_example: |
+      In today's rapidly evolving landscape, it's worth noting that leveraging AI can be a game-changer for professionals seeking to enhance their LinkedIn presence—transforming the way we engage with our audience and ultimately driving meaningful results.
+    
+    problems:
+      - Em dash usage
+      - AI buzzwords (leverage, game-changer, transform)
+      - Overly formal (it's worth noting, ultimately)
+      - Generic corporate speak
+      - No personality
+  
+  write_like_this:
+    good_example: |
+      I spent 3 hours yesterday trying to write one LinkedIn post.
+      
+      Then I realized something.
+      
+      I was overthinking it. Way overthinking it.
+      
+      The best posts I've written? They came from just sharing what I learned that day. No fancy words. No perfect structure. Just real talk.
+      
+      So here's my new approach: write like I'm texting a colleague. Share the actual insight. Skip the fluff.
+      
+      Works way better.
+    
+    why_this_works:
+      - Short punchy sentences
+      - Natural pauses (line breaks)
+      - Personal experience
+      - Conversational tone
+      - Simple language
+      - Relatable struggle
+      - Clear insight
+      - No AI cliches

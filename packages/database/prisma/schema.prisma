@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  pending_payment
+  active
+  suspended
+  canceled
+}
+
+enum SubscriptionPlan {
+  premium_monthly
+  premium_annual
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+}
+
+enum PostStatus {
+  draft
+  scheduled
+  publishing
+  published
+  failed
+}
+
+enum JobStatus {
+  pending
+  queued
+  processing
+  completed
+  failed
+  canceled
+}
+
+enum RecurringFrequency {
+  daily
+  weekly
+  monthly
+}
+
+model User {
+  id              String        @id @default(cuid())
+  linkedinId      String        @unique @map("linkedin_id")
+  email           String
+  name            String
+  headline        String?
+  industry        String?
+  profileUrl      String?       @map("profile_url")
+  profileImageUrl String?       @map("profile_image_url")
+  accessToken     String        @map("access_token")
+  refreshToken    String?       @map("refresh_token")
+  tokenExpiry     DateTime?     @map("token_expiry")
+  accountStatus   AccountStatus @default(pending_payment) @map("account_status")
+  preferences     Json          @default("{}")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  subscription    Subscription?
+  profile         ProfileAnalysis?
+  posts           Post[]
+  drafts          Draft[]
+  templates       Template[]
+  mediaAssets     MediaAsset[]
+  invoices        Invoice[]
+
+  @@index([linkedinId])
+  @@index([accountStatus])
+  @@map("users")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique @map("user_id")
+  stripeCustomerId     String             @unique @map("stripe_customer_id")
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id")
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime           @map("current_period_start")
+  currentPeriodEnd     DateTime           @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model ProfileAnalysis {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  industry         String?
+  expertise        String[] @default([])
+  writingStyle     String?  @map("writing_style")
+  topicsOfInterest String[] @default([]) @map("topics_of_interest")
+  audienceProfile  Json?    @map("audience_profile")
+  rawProfileData   Json?    @map("raw_profile_data")
+  analyzedAt       DateTime @default(now()) @map("analyzed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profile_analyses")
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  stripeInvoiceId String    @unique @map("stripe_invoice_id")
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD")
+  status          String
+  invoicePdfUrl   String?   @map("invoice_pdf_url")
+  paidAt          DateTime? @map("paid_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("invoices")
+}
+
+model Post {
+  id               String     @id @default(cuid())
+  userId           String     @map("user_id")
+  content          String     @db.Text
+  status           PostStatus @default(draft)
+  scheduledAt      DateTime?  @map("scheduled_at")
+  publishedAt      DateTime?  @map("published_at")
+  linkedinPostId   String?    @map("linkedin_post_id")
+  linkedinPostUrl  String?    @map("linkedin_post_url")
+  aiGenerated      Boolean    @default(false) @map("ai_generated")
+  generationPrompt String?    @map("generation_prompt") @db.Text
+  failureReason    String?    @map("failure_reason")
+  templateId       String?    @map("template_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      Template?      @relation(fields: [templateId], references: [id])
+  scheduledPost ScheduledPost?
+  mediaAssets   PostMedia[]
+
+  @@index([userId, status])
+  @@index([scheduledAt])
+  @@map("posts")
+}
+
+model Draft {
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  title          String?
+  content        String       @db.Text
+  lastAutoSaveAt DateTime     @default(now()) @map("last_auto_save_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaAssets DraftMedia[]
+
+  @@index([userId, updatedAt])
+  @@map("drafts")
+}
+
+model ScheduledPost {
+  id            String         @id @default(cuid())
+  postId        String         @unique @map("post_id")
+  scheduledFor  DateTime       @map("scheduled_for")
+  timezone      String         @default("UTC")
+  isRecurring   Boolean        @default(false) @map("is_recurring")
+  jobId         String?        @map("job_id")
+  jobStatus     JobStatus      @default(pending) @map("job_status")
+  attempts      Int            @default(0)
+  lastAttemptAt DateTime?      @map("last_attempt_at")
+  errorMessage  String?        @map("error_message")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  recurringRule RecurringRule?
+
+  @@index([scheduledFor, jobStatus])
+  @@map("scheduled_posts")
+}
+
+model RecurringRule {
+  id               String             @id @default(cuid())
+  scheduledPostId  String             @unique @map("scheduled_post_id")
+  frequency        RecurringFrequency
+  interval         Int                @default(1)
+  daysOfWeek       Int[]              @default([]) @map("days_of_week")
+  dayOfMonth       Int?               @map("day_of_month")
+  timeOfDay        String             @map("time_of_day")
+  startDate        DateTime           @map("start_date")
+  endDate          DateTime?          @map("end_date")
+  lastGeneratedAt  DateTime?          @map("last_generated_at")
+  nextOccurrenceAt DateTime?          @map("next_occurrence_at")
+
+  scheduledPost ScheduledPost @relation(fields: [scheduledPostId], references: [id], onDelete: Cascade)
+
+  @@map("recurring_rules")
+}
+
+model Template {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  name            String
+  description     String?
+  category        String?
+  content         String    @db.Text
+  variables       Json      @default("[]")
+  tone            String?
+  format          String?
+  isPublic        Boolean   @default(false) @map("is_public")
+  usageCount      Int       @default(0) @map("usage_count")
+  lastUsedAt      DateTime? @map("last_used_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts Post[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("templates")
+}
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  filename    String
+  originalName String  @map("original_name")
+  mimeType    String   @map("mime_type")
+  size        Int
+  storagePath String   @map("storage_path")
+  publicUrl   String?  @map("public_url")
+  width       Int?
+  height      Int?
+  duration    Int?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts  PostMedia[]
+  drafts DraftMedia[]
+
+  @@index([userId])
+  @@map("media_assets")
+}
+
+model PostMedia {
+  id           String     @id @default(cuid())
+  postId       String     @map("post_id")
+  mediaAssetId String     @map("media_asset_id")
+  order        Int        @default(0)
+
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, mediaAssetId])
+  @@map("post_media")
+}
+
+model DraftMedia {
+  id           String     @id @default(cuid())
+  draftId      String     @map("draft_id")
+  mediaAssetId String     @map("media_asset_id")
+  order        Int        @default(0)
+
+  draft      Draft      @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, mediaAssetId])
+  @@map("draft_media")
+}
