@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FileText, Plus, Trash2, X, Zap } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -142,8 +143,8 @@ export default function TemplatesPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-linkedin-blue border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading templates...</p>
+          <div className="w-12 h-12 border-4 border-[#feae34] border-t-transparent mx-auto mb-4 animate-spin" />
+          <p className="font-retro text-xl text-[#94a3b8]">Loading templates...</p>
         </div>
       </div>
     );
@@ -151,24 +152,32 @@ export default function TemplatesPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div
+        className="flex items-center justify-between mb-6 bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+        style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="font-pixel text-sm md:text-base text-[#b55088] text-shadow-pixel mb-2">
+            TEMPLATES
+          </h1>
+          <p className="font-retro text-xl text-[#94a3b8]">
             Save and reuse your best-performing post structures
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="btn-primary btn-md"
+          className="flex items-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+          style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
         >
+          <Plus className="w-4 h-4" />
           Create Template
         </button>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-6">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-4 bg-[#e43b44]/20 border-4 border-[#e43b44] mb-6">
+          <p className="font-retro text-lg text-[#e43b44]">{error}</p>
         </div>
       )}
 
@@ -178,10 +187,10 @@ export default function TemplatesPage() {
           <button
             key={category.value}
             onClick={() => setSelectedCategory(category.value)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`px-3 py-2 font-retro text-base border-2 transition-all ${
               selectedCategory === category.value
-                ? 'bg-linkedin-blue text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-[#b55088] text-[#f4f4f4] border-[#f4f4f4]'
+                : 'bg-[#1a1c2c] text-[#94a3b8] border-[#3a4466] hover:border-[#f4f4f4]'
             }`}
           >
             {category.label}
@@ -190,22 +199,30 @@ export default function TemplatesPage() {
       </div>
 
       {filteredTemplates.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">📋</span>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-12 text-center"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div
+            className="w-16 h-16 bg-[#b55088] border-4 border-[#f4f4f4] flex items-center justify-center mx-auto mb-6"
+            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+          >
+            <FileText className="w-8 h-8 text-[#f4f4f4]" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel mb-3">
             {selectedCategory === 'all'
-              ? 'No templates yet'
-              : 'No templates in this category'}
+              ? 'NO TEMPLATES YET'
+              : 'NO TEMPLATES IN THIS CATEGORY'}
           </h2>
-          <p className="text-gray-500 mb-6">
+          <p className="font-retro text-xl text-[#94a3b8] mb-6">
             Create templates to quickly reuse your best post structures
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary btn-md"
+            className="inline-flex items-center gap-2 font-retro text-lg bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-6 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
           >
+            <Plus className="w-5 h-5" />
             Create Template
           </button>
         </div>
@@ -214,32 +231,33 @@ export default function TemplatesPage() {
           {filteredTemplates.map((template) => (
             <div
               key={template.id}
-              className="card hover:shadow-card-hover transition-shadow"
+              className="bg-[#262b44] border-4 border-[#f4f4f4] p-6 hover:border-[#feae34] transition-colors"
+              style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900">
-                    {template.name}
+                  <h3 className="font-pixel text-[10px] text-[#f4f4f4] text-shadow-pixel">
+                    {template.name.toUpperCase()}
                   </h3>
                   {template.category && (
-                    <span className="text-xs text-gray-500">
+                    <span className="font-retro text-base text-[#b55088]">
                       {template.category}
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="font-retro text-base text-[#94a3b8]">
                   Used {template.usageCount}x
                 </span>
               </div>
 
               {template.description && (
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="font-retro text-lg text-[#94a3b8] mb-3">
                   {template.description}
                 </p>
               )}
 
-              <div className="p-3 bg-gray-50 rounded-lg mb-4">
-                <p className="text-sm text-gray-700 line-clamp-4 whitespace-pre-wrap">
+              <div className="p-3 bg-[#1a1c2c] border-2 border-[#3a4466] mb-4">
+                <p className="font-retro text-base text-[#f4f4f4] line-clamp-4 whitespace-pre-wrap">
                   {template.content.slice(0, 200)}
                   {template.content.length > 200 ? '...' : ''}
                 </p>
@@ -248,16 +266,20 @@ export default function TemplatesPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleUseTemplate(template)}
-                  className="btn-primary btn-sm flex-1"
+                  className="flex-1 flex items-center justify-center gap-2 font-retro text-base bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-2 border-[#f4f4f4] px-3 py-2 transition-all hover:translate-x-[1px] hover:translate-y-[1px]"
+                  style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
                 >
-                  Use Template
+                  <Zap className="w-4 h-4" />
+                  Use
                 </button>
                 <button
                   onClick={() => handleDelete(template.id)}
                   disabled={deletingId === template.id}
-                  className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 font-retro text-base bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-2 border-[#f4f4f4] px-3 py-2 transition-all hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-50"
+                  style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
                 >
-                  {deletingId === template.id ? '...' : 'Delete'}
+                  <Trash2 className="w-4 h-4" />
+                  {deletingId === template.id ? '...' : ''}
                 </button>
               </div>
             </div>
@@ -267,39 +289,30 @@ export default function TemplatesPage() {
 
       {/* Create Template Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-[#262b44] border-4 border-[#f4f4f4] w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            style={{ boxShadow: '8px 8px 0 #0a0a0f' }}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">
-                  Create Template
+                <h2 className="font-pixel text-xs text-[#feae34] text-shadow-pixel">
+                  CREATE TEMPLATE
                 </h2>
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
                     resetForm();
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="w-8 h-8 border-2 border-[#f4f4f4] bg-[#e43b44] flex items-center justify-center hover:bg-[#c42f37] transition-colors"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="w-4 h-4 text-[#f4f4f4]" />
                 </button>
               </div>
 
               <form onSubmit={handleCreateTemplate} className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="label mb-1 block">
+                  <label htmlFor="name" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                     Template Name *
                   </label>
                   <input
@@ -308,13 +321,13 @@ export default function TemplatesPage() {
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g., Weekly Tips Format"
-                    className="input"
+                    className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="label mb-1 block">
+                  <label htmlFor="description" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                     Description
                   </label>
                   <input
@@ -322,20 +335,20 @@ export default function TemplatesPage() {
                     type="text"
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="Brief description of when to use this template"
-                    className="input"
+                    placeholder="Brief description of when to use this"
+                    className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34]"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="category" className="label mb-1 block">
+                  <label htmlFor="category" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                     Category
                   </label>
                   <select
                     id="category"
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="input"
+                    className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] focus:outline-none focus:border-[#feae34]"
                   >
                     <option value="">Select a category</option>
                     {CATEGORIES.filter((c) => c.value !== 'all').map((cat) => (
@@ -347,21 +360,20 @@ export default function TemplatesPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="content" className="label mb-1 block">
+                  <label htmlFor="content" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                     Template Content *
                   </label>
                   <textarea
                     id="content"
                     value={formContent}
                     onChange={(e) => setFormContent(e.target.value)}
-                    placeholder="Enter your template content. Use [TOPIC], [POINT1], etc. as placeholders..."
-                    className="textarea min-h-[200px]"
+                    placeholder="Enter your template content..."
+                    className="w-full min-h-[200px] bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34] resize-none"
                     rows={8}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Tip: Use placeholders like [TOPIC], [POINT1], [NAME] for
-                    customizable sections
+                  <p className="font-retro text-base text-[#94a3b8] mt-1">
+                    Tip: Use placeholders like [TOPIC], [POINT1], [NAME]
                   </p>
                 </div>
 
@@ -372,16 +384,18 @@ export default function TemplatesPage() {
                       setShowCreateModal(false);
                       resetForm();
                     }}
-                    className="btn-secondary btn-md flex-1"
+                    className="flex-1 font-retro text-lg bg-[#3a4466] hover:bg-[#4a5476] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+                    style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || !formName || !formContent}
-                    className="btn-primary btn-md flex-1 disabled:opacity-50"
+                    className="flex-1 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                    style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
                   >
-                    {isSubmitting ? 'Creating...' : 'Create Template'}
+                    {isSubmitting ? 'CREATING...' : 'CREATE'}
                   </button>
                 </div>
               </form>

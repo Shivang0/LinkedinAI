@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { User, CreditCard, Link2, Trash2, ExternalLink } from 'lucide-react';
 
 interface UserProfile {
   name: string;
@@ -73,8 +74,8 @@ export default function SettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-linkedin-blue border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading settings...</p>
+          <div className="w-12 h-12 border-4 border-[#feae34] border-t-transparent mx-auto mb-4 animate-spin" />
+          <p className="font-retro text-xl text-[#94a3b8]">Loading settings...</p>
         </div>
       </div>
     );
@@ -82,21 +83,40 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your account and preferences</p>
+      {/* Header */}
+      <div
+        className="mb-6 bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+        style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+      >
+        <h1 className="font-pixel text-sm md:text-base text-[#feae34] text-shadow-pixel mb-2">
+          SETTINGS
+        </h1>
+        <p className="font-retro text-xl text-[#94a3b8]">
+          Manage your account and preferences
+        </p>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-6">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-4 bg-[#e43b44]/20 border-4 border-[#e43b44] mb-6">
+          <p className="font-retro text-lg text-[#e43b44]">{error}</p>
         </div>
       )}
 
       <div className="space-y-6">
         {/* Profile Section */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#0099db] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <User className="w-5 h-5 text-[#f4f4f4]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">PROFILE</h2>
+          </div>
 
           {profile && (
             <div className="space-y-4">
@@ -105,43 +125,46 @@ export default function SettingsPage() {
                   <img
                     src={profile.profileImageUrl}
                     alt={profile.name}
-                    className="w-16 h-16 rounded-full"
+                    className="w-16 h-16 border-4 border-[#f4f4f4]"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-linkedin-blue flex items-center justify-center">
-                    <span className="text-white text-xl font-medium">
+                  <div
+                    className="w-16 h-16 bg-[#0099db] border-4 border-[#f4f4f4] flex items-center justify-center"
+                    style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+                  >
+                    <span className="font-pixel text-sm text-[#f4f4f4]">
                       {profile.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div>
-                  <h3 className="font-semibold text-gray-900">{profile.name}</h3>
-                  <p className="text-sm text-gray-500">{profile.email}</p>
+                  <h3 className="font-pixel text-[10px] text-[#f4f4f4] text-shadow-pixel">
+                    {profile.name.toUpperCase()}
+                  </h3>
+                  <p className="font-retro text-lg text-[#94a3b8]">{profile.email}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t-2 border-[#3a4466]">
                 <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
+                  <label className="font-retro text-base text-[#94a3b8] block mb-1">
                     Account Status
                   </label>
-                  <p className="mt-1">
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        profile.accountStatus === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}
-                    >
-                      {profile.accountStatus === 'active' ? 'Active' : 'Pending'}
-                    </span>
-                  </p>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 font-retro text-base border-2 ${
+                      profile.accountStatus === 'active'
+                        ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
+                        : 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
+                    }`}
+                  >
+                    {profile.accountStatus === 'active' ? 'Active' : 'Pending'}
+                  </span>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
+                  <label className="font-retro text-base text-[#94a3b8] block mb-1">
                     Member Since
                   </label>
-                  <p className="mt-1 text-gray-900">
+                  <p className="font-retro text-lg text-[#f4f4f4]">
                     {new Date(profile.createdAt).toLocaleDateString('en-US', {
                       month: 'long',
                       year: 'numeric',
@@ -151,20 +174,19 @@ export default function SettingsPage() {
               </div>
 
               {profile.linkedinUrl && (
-                <div className="pt-4 border-t">
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
+                <div className="pt-4 border-t-2 border-[#3a4466]">
+                  <label className="font-retro text-base text-[#94a3b8] block mb-1">
                     LinkedIn Profile
                   </label>
-                  <p className="mt-1">
-                    <a
-                      href={profile.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-linkedin-blue hover:underline"
-                    >
-                      {profile.linkedinUrl}
-                    </a>
-                  </p>
+                  <a
+                    href={profile.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 font-retro text-lg text-[#0099db] hover:text-[#f4f4f4] transition-colors"
+                  >
+                    {profile.linkedinUrl}
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
                 </div>
               )}
             </div>
@@ -172,33 +194,42 @@ export default function SettingsPage() {
         </div>
 
         {/* Subscription Section */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Subscription
-          </h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#63c74d] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <CreditCard className="w-5 h-5 text-[#1a1c2c]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">SUBSCRIPTION</h2>
+          </div>
 
           {subscription ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-[#1a1c2c] border-2 border-[#3a4466]">
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-pixel text-[10px] text-[#f4f4f4] text-shadow-pixel">
                     {subscription.plan === 'monthly'
-                      ? 'Monthly Plan'
-                      : 'Annual Plan'}
+                      ? 'MONTHLY PLAN'
+                      : 'ANNUAL PLAN'}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-retro text-lg text-[#94a3b8]">
                     {subscription.plan === 'monthly'
                       ? '$19/month'
                       : '$190/year (save $38)'}
                   </p>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  className={`px-3 py-1 font-retro text-base border-2 ${
                     subscription.status === 'active'
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
                       : subscription.status === 'trialing'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-[#0099db] text-[#f4f4f4] border-[#f4f4f4]'
+                      : 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
                   }`}
                 >
                   {subscription.status.charAt(0).toUpperCase() +
@@ -207,7 +238,7 @@ export default function SettingsPage() {
               </div>
 
               {subscription.currentPeriodEnd && (
-                <p className="text-sm text-gray-500">
+                <p className="font-retro text-lg text-[#94a3b8]">
                   {subscription.status === 'active'
                     ? 'Renews on '
                     : 'Ends on '}
@@ -225,15 +256,20 @@ export default function SettingsPage() {
               <button
                 onClick={handleManageBilling}
                 disabled={isManagingBilling}
-                className="btn-secondary btn-md w-full disabled:opacity-50"
+                className="w-full font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
               >
-                {isManagingBilling ? 'Opening...' : 'Manage Billing'}
+                {isManagingBilling ? 'OPENING...' : 'MANAGE BILLING'}
               </button>
             </div>
           ) : (
             <div className="text-center py-6">
-              <p className="text-gray-500 mb-4">No active subscription</p>
-              <Link href="/checkout" className="btn-primary btn-md">
+              <p className="font-retro text-xl text-[#94a3b8] mb-4">No active subscription</p>
+              <Link
+                href="/checkout"
+                className="inline-flex items-center gap-2 font-retro text-lg bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-6 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+              >
                 Subscribe Now
               </Link>
             </div>
@@ -241,31 +277,43 @@ export default function SettingsPage() {
         </div>
 
         {/* LinkedIn Connection */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            LinkedIn Connection
-          </h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#0099db] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <Link2 className="w-5 h-5 text-[#f4f4f4]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">LINKEDIN CONNECTION</h2>
+          </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-[#1a1c2c] border-2 border-[#3a4466]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linkedin-blue rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">in</span>
+              <div
+                className="w-10 h-10 bg-[#0099db] border-2 border-[#f4f4f4] flex items-center justify-center"
+              >
+                <span className="font-pixel text-xs text-[#f4f4f4]">in</span>
               </div>
               <div>
-                <p className="font-medium text-gray-900">LinkedIn</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-retro text-lg text-[#f4f4f4]">LinkedIn</p>
+                <p className="font-retro text-base text-[#94a3b8]">
                   {profile?.linkedinUrl ? 'Connected' : 'Not connected'}
                 </p>
               </div>
             </div>
             {profile?.linkedinUrl ? (
-              <span className="text-green-600 text-sm font-medium">
+              <span className="font-retro text-lg text-[#63c74d]">
                 Connected
               </span>
             ) : (
               <a
                 href="/api/auth/linkedin"
-                className="btn-secondary btn-sm"
+                className="font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-2 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[1px] hover:translate-y-[1px]"
+                style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
               >
                 Connect
               </a>
@@ -274,23 +322,30 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="card border-red-200">
-          <h2 className="text-lg font-semibold text-red-600 mb-4">
-            Danger Zone
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900">Delete Account</p>
-                <p className="text-sm text-gray-500">
-                  Permanently delete your account and all data
-                </p>
-              </div>
-              <button className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
-                Delete Account
-              </button>
+        <div
+          className="bg-[#262b44] border-4 border-[#e43b44] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#e43b44] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <Trash2 className="w-5 h-5 text-[#f4f4f4]" />
             </div>
+            <h2 className="font-pixel text-xs text-[#e43b44] text-shadow-pixel">DANGER ZONE</h2>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-retro text-lg text-[#f4f4f4]">Delete Account</p>
+              <p className="font-retro text-base text-[#94a3b8]">
+                Permanently delete your account and all data
+              </p>
+            </div>
+            <button className="font-retro text-lg text-[#e43b44] border-2 border-[#e43b44] px-4 py-2 hover:bg-[#e43b44] hover:text-[#f4f4f4] transition-colors">
+              Delete Account
+            </button>
           </div>
         </div>
       </div>

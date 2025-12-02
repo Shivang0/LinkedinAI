@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ArrowLeft, CreditCard, Receipt, Download } from 'lucide-react';
 
 interface Invoice {
   id: string;
@@ -81,8 +82,8 @@ export default function BillingPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-linkedin-blue border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading billing...</p>
+          <div className="w-12 h-12 border-4 border-[#feae34] border-t-transparent mx-auto mb-4 animate-spin" />
+          <p className="font-retro text-xl text-[#94a3b8]">Loading billing...</p>
         </div>
       </div>
     );
@@ -90,78 +91,93 @@ export default function BillingPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center gap-2 mb-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-6 font-retro text-lg">
         <Link
           href="/settings"
-          className="text-gray-500 hover:text-gray-700"
+          className="flex items-center gap-1 text-[#94a3b8] hover:text-[#feae34] transition-colors"
         >
+          <ArrowLeft className="w-4 h-4" />
           Settings
         </Link>
-        <span className="text-gray-400">/</span>
-        <span className="text-gray-900">Billing</span>
+        <span className="text-[#3a4466]">/</span>
+        <span className="text-[#f4f4f4]">Billing</span>
       </div>
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Billing & Invoices</h1>
-        <p className="text-gray-600 mt-1">
+      {/* Header */}
+      <div
+        className="mb-6 bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+        style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+      >
+        <h1 className="font-pixel text-sm md:text-base text-[#63c74d] text-shadow-pixel mb-2">
+          BILLING & INVOICES
+        </h1>
+        <p className="font-retro text-xl text-[#94a3b8]">
           Manage your subscription and view billing history
         </p>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-6">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-4 bg-[#e43b44]/20 border-4 border-[#e43b44] mb-6">
+          <p className="font-retro text-lg text-[#e43b44]">{error}</p>
         </div>
       )}
 
       <div className="space-y-6">
         {/* Current Plan */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Current Plan
-          </h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#63c74d] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <CreditCard className="w-5 h-5 text-[#1a1c2c]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">CURRENT PLAN</h2>
+          </div>
 
           {subscription ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-linkedin-blue/5 border border-linkedin-blue/20 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-[#0099db]/10 border-2 border-[#0099db]">
                 <div>
-                  <p className="font-semibold text-gray-900 text-lg">
+                  <p className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">
                     {subscription.plan === 'monthly'
-                      ? 'Monthly Plan'
-                      : 'Annual Plan'}
+                      ? 'MONTHLY PLAN'
+                      : 'ANNUAL PLAN'}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="font-retro text-xl text-[#94a3b8]">
                     {subscription.plan === 'monthly'
                       ? '$19 per month'
                       : '$190 per year (save $38)'}
                   </p>
                 </div>
-                <div className="text-right">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      subscription.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : subscription.status === 'trialing'
-                        ? 'bg-blue-100 text-blue-700'
-                        : subscription.status === 'canceled'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {subscription.status.charAt(0).toUpperCase() +
-                      subscription.status.slice(1)}
-                  </span>
-                </div>
+                <span
+                  className={`px-3 py-1 font-retro text-base border-2 ${
+                    subscription.status === 'active'
+                      ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
+                      : subscription.status === 'trialing'
+                      ? 'bg-[#0099db] text-[#f4f4f4] border-[#f4f4f4]'
+                      : subscription.status === 'canceled'
+                      ? 'bg-[#e43b44] text-[#f4f4f4] border-[#f4f4f4]'
+                      : 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
+                  }`}
+                >
+                  {subscription.status.charAt(0).toUpperCase() +
+                    subscription.status.slice(1)}
+                </span>
               </div>
 
               {subscription.currentPeriodEnd && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">
+                <div className="flex items-center justify-between font-retro text-lg">
+                  <span className="text-[#94a3b8]">
                     {subscription.status === 'canceled'
                       ? 'Access ends'
                       : 'Next billing date'}
                   </span>
-                  <span className="text-gray-900">
+                  <span className="text-[#f4f4f4]">
                     {new Date(subscription.currentPeriodEnd).toLocaleDateString(
                       'en-US',
                       {
@@ -174,27 +190,33 @@ export default function BillingPage() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleManageBilling}
-                  disabled={isManagingBilling}
-                  className="btn-primary btn-md flex-1 disabled:opacity-50"
-                >
-                  {isManagingBilling ? 'Opening...' : 'Manage Subscription'}
-                </button>
-              </div>
+              <button
+                onClick={handleManageBilling}
+                disabled={isManagingBilling}
+                className="w-full font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+              >
+                {isManagingBilling ? 'OPENING...' : 'MANAGE SUBSCRIPTION'}
+              </button>
 
-              <p className="text-xs text-gray-500 text-center">
+              <p className="font-retro text-base text-[#94a3b8] text-center">
                 Update payment method, change plan, or cancel subscription
               </p>
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">💳</span>
+              <div
+                className="w-16 h-16 bg-[#3a4466] border-4 border-[#f4f4f4] flex items-center justify-center mx-auto mb-4"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+              >
+                <CreditCard className="w-8 h-8 text-[#94a3b8]" />
               </div>
-              <p className="text-gray-500 mb-4">No active subscription</p>
-              <Link href="/checkout" className="btn-primary btn-md">
+              <p className="font-retro text-xl text-[#94a3b8] mb-4">No active subscription</p>
+              <Link
+                href="/checkout"
+                className="inline-flex items-center gap-2 font-retro text-lg bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-6 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+              >
                 Subscribe Now
               </Link>
             </div>
@@ -202,58 +224,68 @@ export default function BillingPage() {
         </div>
 
         {/* Billing History */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Billing History
-          </h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#feae34] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <Receipt className="w-5 h-5 text-[#1a1c2c]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">BILLING HISTORY</h2>
+          </div>
 
           {invoices.length === 0 ? (
-            <p className="text-gray-500 text-center py-6">
+            <p className="font-retro text-xl text-[#94a3b8] text-center py-6">
               No invoices yet
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">
-                      Date
+                  <tr className="border-b-2 border-[#3a4466]">
+                    <th className="text-left py-3 px-2 font-retro text-base text-[#94a3b8]">
+                      DATE
                     </th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">
-                      Amount
+                    <th className="text-left py-3 px-2 font-retro text-base text-[#94a3b8]">
+                      AMOUNT
                     </th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">
-                      Status
+                    <th className="text-left py-3 px-2 font-retro text-base text-[#94a3b8]">
+                      STATUS
                     </th>
-                    <th className="text-right py-3 px-2 text-xs font-medium text-gray-500 uppercase">
-                      Invoice
+                    <th className="text-right py-3 px-2 font-retro text-base text-[#94a3b8]">
+                      INVOICE
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoices.map((invoice) => (
-                    <tr key={invoice.id} className="border-b last:border-0">
-                      <td className="py-3 px-2 text-sm text-gray-900">
+                    <tr key={invoice.id} className="border-b border-[#3a4466] last:border-0">
+                      <td className="py-3 px-2 font-retro text-lg text-[#f4f4f4]">
                         {new Date(invoice.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-2 text-sm text-gray-900">
+                      <td className="py-3 px-2 font-retro text-lg text-[#f4f4f4]">
                         {formatCurrency(invoice.amount, invoice.currency)}
                       </td>
                       <td className="py-3 px-2">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          className={`px-2 py-0.5 font-retro text-base border-2 ${
                             invoice.status === 'paid'
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
                               : invoice.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
+                              : 'bg-[#e43b44] text-[#f4f4f4] border-[#f4f4f4]'
                           }`}
                         >
                           {invoice.status}
                         </span>
                       </td>
                       <td className="py-3 px-2 text-right">
-                        <button className="text-sm text-linkedin-blue hover:underline">
+                        <button className="flex items-center gap-1 font-retro text-base text-[#0099db] hover:text-[#f4f4f4] transition-colors ml-auto">
+                          <Download className="w-4 h-4" />
                           Download
                         </button>
                       </td>
@@ -266,21 +298,32 @@ export default function BillingPage() {
         </div>
 
         {/* Payment Method Info */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Payment Method
-          </h2>
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+          style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 bg-[#b55088] border-2 border-[#f4f4f4] flex items-center justify-center"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+            >
+              <CreditCard className="w-5 h-5 text-[#f4f4f4]" />
+            </div>
+            <h2 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">PAYMENT METHOD</h2>
+          </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-[#1a1c2c] border-2 border-[#3a4466]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                <span className="text-lg">💳</span>
+              <div
+                className="w-10 h-10 bg-[#3a4466] border-2 border-[#f4f4f4] flex items-center justify-center"
+              >
+                <CreditCard className="w-5 h-5 text-[#94a3b8]" />
               </div>
               <div>
-                <p className="text-sm text-gray-900">
+                <p className="font-retro text-lg text-[#f4f4f4]">
                   Managed by Stripe
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="font-retro text-base text-[#94a3b8]">
                   Update via billing portal
                 </p>
               </div>
@@ -288,7 +331,8 @@ export default function BillingPage() {
             <button
               onClick={handleManageBilling}
               disabled={isManagingBilling}
-              className="btn-secondary btn-sm disabled:opacity-50"
+              className="font-retro text-lg bg-[#3a4466] hover:bg-[#4a5476] text-[#f4f4f4] border-2 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-50"
+              style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
             >
               Update
             </button>

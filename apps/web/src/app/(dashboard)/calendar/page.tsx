@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight, Plus, X, Clock } from 'lucide-react';
 
 interface ScheduledPost {
   id: string;
@@ -124,8 +125,8 @@ export default function CalendarPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-linkedin-blue border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading calendar...</p>
+          <div className="w-12 h-12 border-4 border-[#feae34] border-t-transparent mx-auto mb-4 animate-spin" />
+          <p className="font-retro text-xl text-[#94a3b8]">Loading calendar...</p>
         </div>
       </div>
     );
@@ -133,68 +134,58 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div
+        className="flex items-center justify-between mb-6 bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+        style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Content Calendar</h1>
-          <p className="text-gray-600 mt-1">
-            {scheduledPosts.length} posts scheduled
+          <h1 className="font-pixel text-sm md:text-base text-[#63c74d] text-shadow-pixel mb-2">
+            CONTENT CALENDAR
+          </h1>
+          <p className="font-retro text-xl text-[#94a3b8]">
+            {scheduledPosts.length} {scheduledPosts.length === 1 ? 'post' : 'posts'} scheduled
           </p>
         </div>
-        <Link href="/compose" className="btn-primary btn-md">
-          Schedule New Post
+        <Link
+          href="/compose"
+          className="flex items-center gap-2 font-retro text-lg bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+          style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+        >
+          <Plus className="w-4 h-4" />
+          Schedule New
         </Link>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-6">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-4 bg-[#e43b44]/20 border-4 border-[#e43b44] mb-6">
+          <p className="font-retro text-lg text-[#e43b44]">{error}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
         <div className="lg:col-span-2">
-          <div className="card">
+          <div
+            className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+            style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+          >
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={() => navigateMonth(-1)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="w-10 h-10 border-2 border-[#f4f4f4] bg-[#1a1c2c] flex items-center justify-center hover:bg-[#3a4466] transition-colors"
               >
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <ChevronLeft className="w-5 h-5 text-[#f4f4f4]" />
               </button>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+              <h2 className="font-pixel text-xs text-[#feae34] text-shadow-pixel">
+                {MONTHS[currentDate.getMonth()].toUpperCase()} {currentDate.getFullYear()}
               </h2>
               <button
                 onClick={() => navigateMonth(1)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="w-10 h-10 border-2 border-[#f4f4f4] bg-[#1a1c2c] flex items-center justify-center hover:bg-[#3a4466] transition-colors"
               >
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <ChevronRight className="w-5 h-5 text-[#f4f4f4]" />
               </button>
             </div>
 
@@ -203,7 +194,7 @@ export default function CalendarPage() {
               {DAYS.map((day) => (
                 <div
                   key={day}
-                  className="text-center text-sm font-medium text-gray-500 py-2"
+                  className="text-center font-retro text-base text-[#94a3b8] py-2"
                 >
                   {day}
                 </div>
@@ -228,17 +219,17 @@ export default function CalendarPage() {
                   <button
                     key={date.toISOString()}
                     onClick={() => setSelectedDate(date)}
-                    className={`h-20 p-1 rounded-lg border transition-colors text-left ${
+                    className={`h-20 p-1 border-2 transition-colors text-left ${
                       isSelected
-                        ? 'border-linkedin-blue bg-linkedin-blue/5'
-                        : 'border-transparent hover:bg-gray-50'
-                    } ${isToday(date) ? 'bg-blue-50' : ''}`}
+                        ? 'border-[#feae34] bg-[#feae34]/10'
+                        : 'border-[#3a4466] hover:border-[#f4f4f4]'
+                    } ${isToday(date) ? 'bg-[#0099db]/20' : ''}`}
                   >
                     <span
-                      className={`text-sm ${
+                      className={`font-retro text-base ${
                         isToday(date)
-                          ? 'font-bold text-linkedin-blue'
-                          : 'text-gray-700'
+                          ? 'text-[#0099db] font-bold'
+                          : 'text-[#f4f4f4]'
                       }`}
                     >
                       {date.getDate()}
@@ -248,12 +239,12 @@ export default function CalendarPage() {
                         {postsForDay.slice(0, 2).map((post) => (
                           <div
                             key={post.id}
-                            className={`text-xs px-1 py-0.5 rounded truncate mb-0.5 ${
+                            className={`font-retro text-xs px-1 py-0.5 truncate mb-0.5 ${
                               post.jobStatus === 'pending'
-                                ? 'bg-blue-100 text-blue-700'
+                                ? 'bg-[#0099db] text-[#f4f4f4]'
                                 : post.jobStatus === 'completed'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-yellow-100 text-yellow-700'
+                                ? 'bg-[#63c74d] text-[#1a1c2c]'
+                                : 'bg-[#feae34] text-[#1a1c2c]'
                             }`}
                           >
                             {new Date(post.scheduledFor).toLocaleTimeString(
@@ -263,7 +254,7 @@ export default function CalendarPage() {
                           </div>
                         ))}
                         {postsForDay.length > 2 && (
-                          <div className="text-xs text-gray-500">
+                          <div className="font-retro text-xs text-[#94a3b8]">
                             +{postsForDay.length - 2} more
                           </div>
                         )}
@@ -278,27 +269,35 @@ export default function CalendarPage() {
 
         {/* Selected Date Details */}
         <div className="lg:col-span-1">
-          <div className="card sticky top-20">
-            <h3 className="font-semibold text-gray-900 mb-4">
+          <div
+            className="bg-[#262b44] border-4 border-[#f4f4f4] p-6 sticky top-20"
+            style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+          >
+            <h3 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel mb-4">
               {selectedDate
                 ? selectedDate.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
-                  })
-                : 'Select a date'}
+                  }).toUpperCase()
+                : 'SELECT A DATE'}
             </h3>
 
             {!selectedDate ? (
-              <p className="text-sm text-gray-500">
+              <p className="font-retro text-lg text-[#94a3b8]">
                 Click on a date to view scheduled posts
               </p>
             ) : selectedDatePosts.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="font-retro text-lg text-[#94a3b8] mb-4">
                   No posts scheduled for this date
                 </p>
-                <Link href="/compose" className="btn-secondary btn-sm">
+                <Link
+                  href="/compose"
+                  className="inline-flex items-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+                  style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+                >
+                  <Plus className="w-4 h-4" />
                   Schedule Post
                 </Link>
               </div>
@@ -307,36 +306,38 @@ export default function CalendarPage() {
                 {selectedDatePosts.map((scheduledPost) => (
                   <div
                     key={scheduledPost.id}
-                    className="p-3 bg-gray-50 rounded-lg"
+                    className="p-4 bg-[#1a1c2c] border-2 border-[#3a4466]"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-linkedin-blue">
+                      <span className="flex items-center gap-2 font-retro text-lg text-[#0099db]">
+                        <Clock className="w-4 h-4" />
                         {new Date(scheduledPost.scheduledFor).toLocaleTimeString(
                           [],
                           { hour: '2-digit', minute: '2-digit' }
                         )}
                       </span>
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
+                        className={`font-retro text-base px-2 py-0.5 border-2 ${
                           scheduledPost.jobStatus === 'pending'
-                            ? 'bg-blue-100 text-blue-700'
+                            ? 'bg-[#0099db] text-[#f4f4f4] border-[#f4f4f4]'
                             : scheduledPost.jobStatus === 'completed'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
+                            : 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
                         }`}
                       >
                         {scheduledPost.jobStatus}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-3">
+                    <p className="font-retro text-base text-[#f4f4f4] line-clamp-3">
                       {scheduledPost.post.content.slice(0, 150)}
                       {scheduledPost.post.content.length > 150 ? '...' : ''}
                     </p>
                     {scheduledPost.jobStatus === 'pending' && (
                       <button
                         onClick={() => handleCancelPost(scheduledPost.id)}
-                        className="mt-2 text-xs text-red-600 hover:underline"
+                        className="mt-3 flex items-center gap-1 font-retro text-base text-[#e43b44] hover:text-[#f4f4f4] transition-colors"
                       >
+                        <X className="w-4 h-4" />
                         Cancel
                       </button>
                     )}
