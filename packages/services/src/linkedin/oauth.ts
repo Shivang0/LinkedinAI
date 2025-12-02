@@ -48,8 +48,7 @@ export function getLinkedInAuthUrl(config: {
     'openid',
     'profile',
     'email',
-    'w_member_social', // Required for posting
-    'r_member_social', // Required for reading posts
+    'w_member_social', // Required for posting and reading own posts
   ];
 
   const params = new URLSearchParams({
