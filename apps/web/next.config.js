@@ -1,5 +1,8 @@
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   transpilePackages: [
     '@linkedin-ai/database',
     '@linkedin-ai/services',
@@ -18,8 +21,12 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcrypt'],
+  serverExternalPackages: ['@prisma/client', 'bcrypt'],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
   },
 };
 
