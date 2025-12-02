@@ -1,11 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
+  "buildCommand": "pnpm turbo build --filter=@linkedin-ai/web",
+  "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm turbo build --filter=@linkedin-ai/web"
+  "framework": "nextjs",
+  "ignoreCommand": "exit 1"
 }
