@@ -1,7 +1,11 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm turbo build --filter=@linkedin-ai/web",
-  "outputDirectory": "apps/web/.next",
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "installCommand": "pnpm install",
-  "framework": null
+  "buildCommand": "pnpm turbo build --filter=@linkedin-ai/web"
 }
