@@ -12,6 +12,9 @@ import {
   TrendingUp,
   Calendar,
   Loader2,
+  Download,
+  CloudDownload,
+  CheckCircle,
 } from 'lucide-react';
 
 interface PostEngagement {
@@ -44,6 +47,22 @@ interface EngagementData {
   postCount: number;
 }
 
+interface SyncStatus {
+  totalPosts: number;
+  importedPosts: number;
+  postsWithEngagement: number;
+  lastSyncAt: string | null;
+}
+
+interface SyncResult {
+  message: string;
+  totalLinkedInPosts: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+}
+
 type SortKey = 'publishedAt' | 'likes' | 'comments' | 'shares';
 type SortOrder = 'asc' | 'desc';
 
@@ -51,6 +70,9 @@ export default function EngagementPage() {
   const [data, setData] = useState<EngagementData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('publishedAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
@@ -85,8 +107,42 @@ export default function EngagementPage() {
     }
   };
 
+  const fetchSyncStatus = async () => {
+    try {
+      const response = await fetch('/api/engagement/sync');
+      if (response.ok) {
+        const status = await response.json();
+        setSyncStatus(status);
+      }
+    } catch (err) {
+      console.error('Failed to fetch sync status:', err);
+    }
+  };
+
+  const syncFromLinkedIn = async () => {
+    setIsSyncing(true);
+    setError(null);
+    setSyncResult(null);
+
+    try {
+      const response = await fetch('/api/engagement/sync', { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to sync posts from LinkedIn');
+
+      const result = await response.json();
+      setSyncResult(result);
+
+      // Re-fetch engagement data and sync status
+      await Promise.all([fetchEngagement(), fetchSyncStatus()]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sync failed');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   useEffect(() => {
     fetchEngagement();
+    fetchSyncStatus();
   }, []);
 
   const sortedPosts = data?.posts.slice().sort((a, b) => {
@@ -167,18 +223,53 @@ export default function EngagementPage() {
             <p className="font-retro text-xl text-[#94a3b8]">
               Track your LinkedIn post performance
             </p>
+            {syncStatus && (
+              <p className="font-retro text-sm text-[#5a6080] mt-1">
+                {syncStatus.importedPosts} imported posts | Last sync: {syncStatus.lastSyncAt ? new Date(syncStatus.lastSyncAt).toLocaleDateString() : 'Never'}
+              </p>
+            )}
           </div>
-          <button
-            onClick={refreshEngagement}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 font-retro text-lg bg-[#0099db] hover:bg-[#0088c7] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
-            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'REFRESHING...' : 'REFRESH ALL'}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={syncFromLinkedIn}
+              disabled={isSyncing}
+              className="flex items-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+              style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+            >
+              <CloudDownload className={`w-4 h-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+              {isSyncing ? 'SYNCING...' : 'SYNC LINKEDIN'}
+            </button>
+            <button
+              onClick={refreshEngagement}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 font-retro text-lg bg-[#0099db] hover:bg-[#0088c7] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+              style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'REFRESHING...' : 'REFRESH ALL'}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Sync Result Banner */}
+      {syncResult && (
+        <div
+          className="mb-6 p-4 bg-[#63c74d]/20 border-4 border-[#63c74d]"
+          style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-5 h-5 text-[#63c74d]" />
+            <span className="font-retro text-lg text-[#63c74d]">Sync Complete!</span>
+          </div>
+          <div className="font-retro text-base text-[#f4f4f4] grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <span>Found: {syncResult.totalLinkedInPosts}</span>
+            <span>Imported: {syncResult.imported}</span>
+            <span>Updated: {syncResult.updated}</span>
+            {syncResult.errors > 0 && <span className="text-[#feae34]">Errors: {syncResult.errors}</span>}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-[#e43b44]/20 border-4 border-[#e43b44]">
@@ -361,12 +452,12 @@ export default function EngagementPage() {
         </div>
       )}
 
-      {/* Note about API limitations */}
+      {/* Note about API */}
       <div className="mt-6 p-4 bg-[#1a1c2c] border-2 border-[#3a4466]">
         <p className="font-retro text-sm text-[#5a6080]">
-          <strong className="text-[#feae34]">Note:</strong> Impressions and click data require
-          LinkedIn Marketing API access (company page). Personal account engagement shows likes and
-          comments only.
+          <strong className="text-[#63c74d]">Sync LinkedIn:</strong> Import all your previous posts and their engagement metrics.
+          <br />
+          <strong className="text-[#0099db]">Refresh All:</strong> Update engagement metrics for existing posts.
         </p>
       </div>
     </div>

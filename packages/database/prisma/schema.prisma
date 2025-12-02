@@ -145,6 +145,7 @@ model Post {
   generationPrompt String?    @map("generation_prompt") @db.Text
   failureReason    String?    @map("failure_reason")
   templateId       String?    @map("template_id")
+  isImported       Boolean    @default(false) @map("is_imported")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
