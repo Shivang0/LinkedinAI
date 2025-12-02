@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
-import { prisma } from '@linkedin-ai/database';
+import { prisma, type Post } from '@linkedin-ai/database';
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const publishedCount = recentPosts.filter((p) => p.status === 'published').length;
+  const publishedCount = recentPosts.filter((p: Post) => p.status === 'published').length;
 
   return (
     <div>

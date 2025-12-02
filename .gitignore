@@ -60,3 +60,5 @@ prisma/*.db-journal
 
 # Misc
 *.tsbuildinfo
+.vercel
+.env*.local
