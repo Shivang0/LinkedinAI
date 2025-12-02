@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@linkedin-ai/database';
 import { getSession } from '@/lib/auth';
 import { createLinkedInClient } from '@linkedin-ai/services';
+import { decrypt } from '@/lib/utils';
 
 export async function GET() {
   try {
@@ -100,7 +101,7 @@ export async function POST() {
       },
     });
 
-    const linkedInClient = createLinkedInClient(user.accessToken);
+    const linkedInClient = createLinkedInClient(decrypt(user.accessToken));
     const results = [];
 
     // Fetch and update engagement for each post

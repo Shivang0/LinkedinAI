@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@linkedin-ai/database';
 import { getSession } from '@/lib/auth';
 import { createLinkedInClient } from '@linkedin-ai/services';
+import { decrypt } from '@/lib/utils';
 
 interface RouteParams {
   params: Promise<{ postId: string }>;
@@ -101,7 +102,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Fetch engagement from LinkedIn
-    const linkedInClient = createLinkedInClient(user.accessToken);
+    const linkedInClient = createLinkedInClient(decrypt(user.accessToken));
     const metrics = await linkedInClient.getPostEngagement(post.linkedinPostId);
 
     // Calculate engagement rate
