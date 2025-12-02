@@ -27,7 +27,30 @@ export async function POST() {
     const linkedInClient = createLinkedInClient(user.accessToken);
 
     // Fetch all posts from LinkedIn
-    const linkedinPosts = await linkedInClient.getAllPostsWithEngagement(100);
+    let linkedinPosts;
+    try {
+      linkedinPosts = await linkedInClient.getAllPostsWithEngagement(100);
+    } catch (fetchError) {
+      console.error('Failed to fetch posts from LinkedIn:', fetchError);
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch posts from LinkedIn API',
+          details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!linkedinPosts || linkedinPosts.length === 0) {
+      return NextResponse.json({
+        message: 'No posts found on LinkedIn',
+        totalLinkedInPosts: 0,
+        imported: 0,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+      });
+    }
 
     // Get existing posts to avoid duplicates
     const existingPosts = await prisma.post.findMany({

@@ -125,9 +125,16 @@ export default function EngagementPage() {
 
     try {
       const response = await fetch('/api/engagement/sync', { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to sync posts from LinkedIn');
-
       const result = await response.json();
+
+      if (!response.ok) {
+        // Show detailed error from API
+        const errorMsg = result.details
+          ? `${result.error}: ${result.details}`
+          : result.error || 'Failed to sync posts from LinkedIn';
+        throw new Error(errorMsg);
+      }
+
       setSyncResult(result);
 
       // Re-fetch engagement data and sync status
