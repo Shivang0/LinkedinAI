@@ -38,6 +38,9 @@ export async function GET(request: Request) {
   const redirectUri = process.env.LINKEDIN_REDIRECT_URI!;
 
   try {
+    console.log('Starting OAuth callback...');
+    console.log('Redirect URI:', redirectUri);
+
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens({
       code,
@@ -45,13 +48,16 @@ export async function GET(request: Request) {
       clientSecret,
       redirectUri,
     });
+    console.log('Tokens received successfully');
 
     // Get LinkedIn profile
     const profile = await getLinkedInProfile(tokens.accessToken);
+    console.log('Profile received:', profile.id, profile.email);
 
     // Calculate token expiry
     const tokenExpiry = new Date(Date.now() + tokens.expiresIn * 1000);
 
+    console.log('Attempting database upsert...');
     // Create or update user in database
     const user = await prisma.user.upsert({
       where: { linkedinId: profile.id },
@@ -115,6 +121,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${appUrl}/dashboard`);
   } catch (error) {
     console.error('OAuth callback error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    console.error('Error stack:', error instanceof Error ? error.stack : 'N/A');
     return NextResponse.redirect(`${appUrl}/login?error=auth_failed`);
   }
 }
