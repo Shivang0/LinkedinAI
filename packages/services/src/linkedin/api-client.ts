@@ -192,8 +192,13 @@ export class LinkedInApiClient {
     let start = 0;
     const pageSize = 50;
 
+    console.log('Fetching posts for author:', authorUrn);
+
     try {
       while (posts.length < count) {
+        const endpoint = `/rest/posts?q=author&author=${encodeURIComponent(authorUrn)}&count=${pageSize}&start=${start}`;
+        console.log('Calling LinkedIn API:', endpoint);
+
         const response = await this.request<{
           elements?: Array<{
             id: string;
@@ -210,17 +215,23 @@ export class LinkedInApiClient {
             createdAt?: number;
           }>;
           paging?: { total?: number; start?: number; count?: number };
-        }>(`/rest/posts?q=author&author=${encodeURIComponent(authorUrn)}&count=${pageSize}&start=${start}`, {
+        }>(endpoint, {
           headers: {
             'LinkedIn-Version': '202401',
           },
         });
 
+        console.log('LinkedIn API response:', JSON.stringify(response, null, 2));
+
         if (!response.elements || response.elements.length === 0) {
+          console.log('No elements in response, breaking');
           break;
         }
 
+        console.log(`Found ${response.elements.length} posts in this page`);
+
         for (const post of response.elements) {
+          console.log(`Processing post ${post.id}, lifecycleState: ${post.lifecycleState}`);
           // Only include published posts
           if (post.lifecycleState !== 'PUBLISHED') continue;
 
@@ -250,9 +261,11 @@ export class LinkedInApiClient {
         start += pageSize;
       }
 
+      console.log(`Total posts found: ${posts.length}`);
       return posts;
     } catch (error) {
-      console.error('Failed to fetch user posts:', error);
+      console.error('Failed to fetch user posts with REST API:', error);
+      console.log('Falling back to legacy ugcPosts API...');
       // Fallback: try the older ugcPosts API
       return this.getUserPostsLegacy(count);
     }
@@ -266,7 +279,12 @@ export class LinkedInApiClient {
     const authorUrn = `urn:li:person:${member.id}`;
     const posts: LinkedInPost[] = [];
 
+    console.log('Trying legacy ugcPosts API for author:', authorUrn);
+
     try {
+      const endpoint = `/v2/ugcPosts?q=authors&authors=List(${encodeURIComponent(authorUrn)})&count=${count}`;
+      console.log('Calling legacy endpoint:', endpoint);
+
       const response = await this.request<{
         elements?: Array<{
           id: string;
@@ -282,10 +300,14 @@ export class LinkedInApiClient {
           created?: { time?: number };
           firstPublishedAt?: number;
         }>;
-      }>(`/v2/ugcPosts?q=authors&authors=List(${encodeURIComponent(authorUrn)})&count=${count}`);
+      }>(endpoint);
+
+      console.log('Legacy API response:', JSON.stringify(response, null, 2));
 
       if (response.elements) {
+        console.log(`Legacy API found ${response.elements.length} posts`);
         for (const post of response.elements) {
+          console.log(`Processing legacy post ${post.id}, lifecycleState: ${post.lifecycleState}`);
           if (post.lifecycleState !== 'PUBLISHED') continue;
 
           const shareContent = post.specificContent?.['com.linkedin.ugc.ShareContent'];
@@ -302,8 +324,11 @@ export class LinkedInApiClient {
             mediaUrls,
           });
         }
+      } else {
+        console.log('No elements in legacy API response');
       }
 
+      console.log(`Legacy API total posts found: ${posts.length}`);
       return posts;
     } catch (error) {
       console.error('Failed to fetch posts with legacy API:', error);

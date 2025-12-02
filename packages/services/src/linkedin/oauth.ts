@@ -49,6 +49,7 @@ export function getLinkedInAuthUrl(config: {
     'profile',
     'email',
     'w_member_social', // Required for posting
+    'r_member_social', // Required for reading posts
   ];
 
   const params = new URLSearchParams({
