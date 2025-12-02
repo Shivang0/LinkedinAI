@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     // Create the post and scheduled post in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: typeof prisma) => {
       // Create the post
       const post = await tx.post.create({
         data: {
