@@ -2,6 +2,13 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@linkedin-ai/database';
 
+interface PostType {
+  id: string;
+  content: string;
+  status: string;
+  createdAt: Date;
+}
+
 export default async function DashboardPage() {
   const session = await getSession();
 
@@ -27,7 +34,7 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const publishedCount = recentPosts.filter((p: { status: string }) => p.status === 'published').length;
+  const publishedCount = recentPosts.filter((p: PostType) => p.status === 'published').length;
 
   return (
     <div>
@@ -121,7 +128,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {recentPosts.map((post) => (
+            {recentPosts.map((post: PostType) => (
               <div
                 key={post.id}
                 className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
