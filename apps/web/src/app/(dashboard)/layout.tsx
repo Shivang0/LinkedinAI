@@ -12,6 +12,7 @@ import {
   CreditCard,
   LogOut,
   Plus,
+  TrendingUp,
 } from 'lucide-react';
 
 export default async function DashboardLayout({
@@ -60,6 +61,9 @@ export default async function DashboardLayout({
                 <NavLink href="/calendar" icon={<Calendar className="w-4 h-4" />}>
                   Calendar
                 </NavLink>
+                <NavLink href="/engagement" icon={<TrendingUp className="w-4 h-4" />}>
+                  Engagement
+                </NavLink>
                 <NavLink href="/templates" icon={<FileCode className="w-4 h-4" />}>
                   Templates
                 </NavLink>
@@ -98,6 +102,9 @@ export default async function DashboardLayout({
           </MobileNavLink>
           <MobileNavLink href="/calendar" icon={<Calendar className="w-5 h-5" />}>
             Calendar
+          </MobileNavLink>
+          <MobileNavLink href="/engagement" icon={<TrendingUp className="w-5 h-5" />}>
+            Stats
           </MobileNavLink>
         </div>
       </nav>

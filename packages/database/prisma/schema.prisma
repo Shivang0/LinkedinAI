@@ -148,14 +148,33 @@ model Post {
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  template      Template?      @relation(fields: [templateId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      Template?       @relation(fields: [templateId], references: [id])
   scheduledPost ScheduledPost?
   mediaAssets   PostMedia[]
+  engagement    PostEngagement?
 
   @@index([userId, status])
   @@index([scheduledAt])
   @@map("posts")
+}
+
+model PostEngagement {
+  id          String   @id @default(cuid())
+  postId      String   @unique @map("post_id")
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  engagement  Float    @default(0) // engagement rate percentage
+  fetchedAt   DateTime @default(now()) @map("fetched_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([fetchedAt])
+  @@map("post_engagements")
 }
 
 model Draft {

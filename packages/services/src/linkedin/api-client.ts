@@ -20,6 +20,14 @@ export interface LinkedInMember {
   };
 }
 
+export interface EngagementMetrics {
+  likes: number;
+  comments: number;
+  shares: number;
+  impressions: number;
+  clicks: number;
+}
+
 export class LinkedInApiClient {
   private accessToken: string;
 
@@ -83,6 +91,79 @@ export class LinkedInApiClient {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Gets engagement metrics for a specific post
+   * Note: LinkedIn's standard API has limited engagement data for personal profiles.
+   * Full analytics (impressions, clicks) requires LinkedIn Marketing API with company page access.
+   *
+   * @param postUrn - The LinkedIn post URN (e.g., "urn:li:share:123456789")
+   */
+  async getPostEngagement(postUrn: string): Promise<EngagementMetrics> {
+    // URL encode the URN for the API call
+    const encodedUrn = encodeURIComponent(postUrn);
+
+    let likes = 0;
+    let comments = 0;
+
+    try {
+      // Fetch likes count
+      const likesResponse = await this.request<{ paging?: { total?: number } }>(
+        `/v2/socialActions/${encodedUrn}/likes?count=true`
+      );
+      likes = likesResponse.paging?.total || 0;
+    } catch (error) {
+      console.warn('Failed to fetch likes for post:', postUrn, error);
+    }
+
+    try {
+      // Fetch comments count
+      const commentsResponse = await this.request<{ paging?: { total?: number } }>(
+        `/v2/socialActions/${encodedUrn}/comments?count=true`
+      );
+      comments = commentsResponse.paging?.total || 0;
+    } catch (error) {
+      console.warn('Failed to fetch comments for post:', postUrn, error);
+    }
+
+    // Note: Shares, impressions, and clicks are not available via standard API
+    // They would require LinkedIn Marketing API and company page access
+    return {
+      likes,
+      comments,
+      shares: 0, // Not available via standard API
+      impressions: 0, // Requires Marketing API
+      clicks: 0, // Requires Marketing API
+    };
+  }
+
+  /**
+   * Gets the social actions summary for a post (simpler endpoint)
+   */
+  async getSocialActionsSummary(postUrn: string): Promise<{
+    numLikes: number;
+    numComments: number;
+    liked: boolean;
+  }> {
+    const encodedUrn = encodeURIComponent(postUrn);
+
+    try {
+      const response = await this.request<{
+        numLikes?: number;
+        numComments?: number;
+        liked?: boolean;
+      }>(`/v2/socialActions/${encodedUrn}`);
+
+      return {
+        numLikes: response.numLikes || 0,
+        numComments: response.numComments || 0,
+        liked: response.liked || false,
+      };
+    } catch (error) {
+      console.warn('Failed to fetch social actions summary:', postUrn, error);
+      return { numLikes: 0, numComments: 0, liked: false };
     }
   }
 }

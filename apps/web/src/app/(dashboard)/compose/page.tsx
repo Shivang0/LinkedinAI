@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { X, Calendar, Clock, Sparkles, Save, Send } from 'lucide-react';
+import { X, Calendar, Clock, Sparkles, Save, Send, BarChart3 } from 'lucide-react';
+import { EmojiPicker } from '@/components/emoji-picker';
+import { MediaUpload, type MediaFile } from '@/components/media-upload';
+import { PollPreview } from '@/components/poll-preview';
 
 // Schedule Modal Component
 function ScheduleModal({
@@ -137,6 +140,7 @@ const LENGTH_OPTIONS = [
 export default function ComposePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [draftId, setDraftId] = useState<string | null>(null);
   const [topic, setTopic] = useState('');
@@ -152,6 +156,10 @@ export default function ComposePage() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // New state for enhanced compose features
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const [showPoll, setShowPoll] = useState(false);
 
   // Load draft data from API when editing
   useEffect(() => {
@@ -300,6 +308,33 @@ export default function ComposePage() {
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
+
+  // Handle emoji selection - insert at cursor position
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.slice(0, start) + emoji + content.slice(end);
+      setContent(newContent);
+      // Set cursor position after emoji
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        textarea.focus();
+      }, 0);
+    } else {
+      setContent(content + emoji);
+    }
+  };
+
+  // Handle media file management
+  const handleMediaAdd = (file: MediaFile) => {
+    setMediaFiles((prev) => [...prev, file]);
+  };
+
+  const handleMediaRemove = (id: string) => {
+    setMediaFiles((prev) => prev.filter((f) => f.id !== id));
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -476,17 +511,50 @@ export default function ComposePage() {
             </div>
 
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Your post content will appear here..."
-              className="w-full min-h-[300px] bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-3 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34] resize-none"
-              rows={12}
+              className="w-full min-h-[250px] bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-3 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34] resize-none"
+              rows={10}
             />
 
             {charCount > 3000 && (
               <p className="font-retro text-base text-[#e43b44] mt-2">
                 Content exceeds LinkedIn&apos;s 3000 character limit
               </p>
+            )}
+
+            {/* Compose Toolbar */}
+            <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t-2 border-[#3a4466]">
+              <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+              <MediaUpload
+                mediaFiles={mediaFiles}
+                onMediaAdd={handleMediaAdd}
+                onMediaRemove={handleMediaRemove}
+                disabled={showPoll}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPoll(!showPoll)}
+                className={`flex items-center gap-2 font-retro text-base border-2 px-3 py-2 transition-all ${
+                  showPoll
+                    ? 'bg-[#8bd450] text-[#0a0a0f] border-[#f4f4f4]'
+                    : 'bg-[#3a4466] hover:bg-[#4a5476] text-[#f4f4f4] border-[#f4f4f4]'
+                } hover:translate-x-[1px] hover:translate-y-[1px]`}
+                style={{ boxShadow: '2px 2px 0 #0a0a0f' }}
+                title={showPoll ? 'Hide poll' : 'Add poll'}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Poll</span>
+              </button>
+            </div>
+
+            {/* Poll Preview Panel */}
+            {showPoll && (
+              <div className="mt-4">
+                <PollPreview onClose={() => setShowPoll(false)} />
+              </div>
             )}
 
             {/* Action Buttons */}
@@ -513,7 +581,7 @@ export default function ComposePage() {
           </div>
 
           {/* LinkedIn Preview */}
-          {content && (
+          {(content || mediaFiles.length > 0) && (
             <div
               className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
               style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
@@ -521,8 +589,33 @@ export default function ComposePage() {
               <h3 className="font-pixel text-xs text-[#0099db] text-shadow-pixel mb-4">
                 LINKEDIN PREVIEW
               </h3>
-              <div className="bg-[#1a1c2c] border-2 border-[#3a4466] p-4">
-                <div className="font-retro text-lg text-[#f4f4f4] whitespace-pre-wrap">{content}</div>
+              <div className="bg-[#1a1c2c] border-2 border-[#3a4466] p-4 space-y-4">
+                {content && (
+                  <div className="font-retro text-lg text-[#f4f4f4] whitespace-pre-wrap">{content}</div>
+                )}
+                {mediaFiles.length > 0 && (
+                  <div className="border-t border-[#3a4466] pt-4">
+                    <div className={`grid gap-2 ${
+                      mediaFiles.length === 1 ? 'grid-cols-1' :
+                      mediaFiles.length <= 4 ? 'grid-cols-2' : 'grid-cols-3'
+                    }`}>
+                      {mediaFiles.map((file) => (
+                        <div key={file.id} className="aspect-square bg-[#262b44] border border-[#3a4466] overflow-hidden">
+                          {file.mimeType.startsWith('image/') ? (
+                            <img src={file.url} alt={file.filename} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                              <span className="text-2xl">📄</span>
+                              <span className="font-retro text-xs text-[#f4f4f4] text-center truncate w-full mt-1">
+                                {file.filename}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
