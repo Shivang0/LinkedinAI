@@ -64,7 +64,8 @@ export async function POST(request: Request) {
     }
 
     // Create the post and scheduled post in a transaction
-    const result = await prisma.$transaction(async (tx: typeof prisma) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await prisma.$transaction(async (tx: any) => {
       // Create the post
       const post = await tx.post.create({
         data: {
