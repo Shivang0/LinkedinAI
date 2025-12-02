@@ -9,45 +9,60 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // LinkedIn brand colors
+        // Retro game colors
+        retro: {
+          red: '#e43b44',
+          blue: '#0099db',
+          green: '#63c74d',
+          yellow: '#feae34',
+          white: '#f4f4f4',
+          black: '#1a1c2c',
+          'dark-blue': '#262b44',
+          purple: '#b55088',
+          muted: '#3a4466',
+        },
+        // Keep linkedin blue for compatibility (maps to retro-blue)
         linkedin: {
-          blue: '#0A66C2',
-          'blue-hover': '#004182',
+          blue: '#0099db',
+          'blue-hover': '#0077a8',
         },
-        // App colors
+        // App semantic colors
+        background: '#1a1c2c',
+        foreground: '#f4f4f4',
+        card: '#262b44',
+        'card-foreground': '#f4f4f4',
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#0A66C2', // LinkedIn blue
-          600: '#004182',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          DEFAULT: '#e43b44',
+          foreground: '#ffffff',
         },
-        gray: {
-          50: '#FAFAFA',
-          100: '#F3F6F8',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#666666',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#2D2D2D',
-          900: '#111827',
+        secondary: {
+          DEFAULT: '#3e8948',
+          foreground: '#ffffff',
         },
-        success: '#057642',
-        warning: '#E37400',
-        error: '#CC1016',
-        info: '#378FE9',
-        border: '#E5E7EB',
-        ring: '#0A66C2',
+        muted: {
+          DEFAULT: '#3a4466',
+          foreground: '#94a3b8',
+        },
+        accent: {
+          DEFAULT: '#feae34',
+          foreground: '#1a1c2c',
+        },
+        destructive: {
+          DEFAULT: '#e43b44',
+          foreground: '#ffffff',
+        },
+        border: '#3a4466',
+        input: '#262b44',
+        ring: '#63c74d',
+        success: '#63c74d',
+        warning: '#feae34',
+        error: '#e43b44',
+        info: '#0099db',
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-vt323)', 'VT323', 'monospace'],
+        pixel: ['var(--font-press-start)', 'Press Start 2P', 'monospace'],
+        retro: ['var(--font-vt323)', 'VT323', 'monospace'],
       },
       fontSize: {
         tiny: '0.75rem',
@@ -58,11 +73,15 @@ const config: Config = {
         h1: '2rem',
       },
       boxShadow: {
-        card: '0 2px 8px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.12)',
+        card: '6px 6px 0 #1a1c2c',
+        'card-hover': '4px 4px 0 #1a1c2c',
+        pixel: '4px 4px 0 #1a1c2c',
+        'pixel-sm': '2px 2px 0 #1a1c2c',
+        'pixel-lg': '8px 8px 0 #1a1c2c',
       },
       borderRadius: {
-        card: '8px',
+        card: '0px',
+        DEFAULT: '0px',
       },
     },
   },

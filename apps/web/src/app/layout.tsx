@@ -1,13 +1,23 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Press_Start_2P, VT323 } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-const inter = Inter({ subsets: ['latin'] });
+const pressStart2P = Press_Start_2P({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-press-start',
+});
+
+const vt323 = VT323({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-vt323',
+});
 
 export const metadata: Metadata = {
-  title: 'LinkedIn AI Posting',
-  description: 'AI-powered LinkedIn post creation and scheduling',
+  title: 'LinAI - Smart LinkedIn Post Scheduler',
+  description: 'AI-powered LinkedIn post scheduler that helps you create engaging content and grow your professional network.',
 };
 
 export default function RootLayout({
@@ -17,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${pressStart2P.variable} ${vt323.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

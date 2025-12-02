@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Gamepad2, ArrowLeft, Star } from 'lucide-react';
 
 export default function LoginPage({
   searchParams,
@@ -8,26 +9,47 @@ export default function LoginPage({
   const error = searchParams.error;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-[#1a1c2c] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-[#f4f4f4]"
+            style={{
+              left: `${(i * 53) % 100}%`,
+              top: `${(i * 31) % 100}%`,
+              opacity: 0.3 + (i % 3) * 0.2,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-linkedin-blue rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-2xl">Li</span>
+          <div
+            className="w-16 h-16 bg-[#e43b44] border-4 border-[#f4f4f4] flex items-center justify-center"
+            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+          >
+            <Gamepad2 className="w-8 h-8 text-[#f4f4f4]" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Sign in to LinkedIn AI
+        <h2 className="mt-6 text-center font-pixel text-sm md:text-base text-[#f4f4f4] text-shadow-pixel">
+          SIGN IN TO LinAI
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center font-retro text-xl text-[#94a3b8]">
           Create engaging LinkedIn posts with AI
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow rounded-lg sm:px-10">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div
+          className="bg-[#262b44] border-4 border-[#f4f4f4] py-8 px-6"
+          style={{ boxShadow: '8px 8px 0 #0a0a0f' }}
+        >
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">
+            <div className="mb-6 p-4 bg-[#e43b44]/20 border-4 border-[#e43b44]">
+              <p className="font-retro text-lg text-[#e43b44]">
                 {error === 'auth_failed'
                   ? 'Authentication failed. Please try again.'
                   : error === 'invalid_state'
@@ -40,56 +62,63 @@ export default function LoginPage({
           )}
 
           <div className="space-y-6">
-            <div>
-              <a
-                href="/api/auth/linkedin"
-                className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-linkedin-blue hover:bg-linkedin-blue-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-linkedin-blue"
-              >
-                <LinkedInIcon />
-                Sign in with LinkedIn
-              </a>
-            </div>
+            <a
+              href="/api/auth/linkedin"
+              className="w-full flex justify-center items-center gap-3 font-retro text-xl bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-6 py-4 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+              style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+            >
+              <LinkedInIcon />
+              Sign in with LinkedIn
+            </a>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t-2 border-[#3a4466]" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+              <div className="relative flex justify-center">
+                <span className="px-4 bg-[#262b44] font-retro text-base text-[#94a3b8]">
                   Secure OAuth authentication
                 </span>
               </div>
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="font-retro text-lg text-[#94a3b8]">
                 By signing in, you agree to our{' '}
-                <a href="#" className="text-linkedin-blue hover:underline">
+                <Link href="/terms" className="text-[#feae34] hover:text-[#f4f4f4] transition-colors">
                   Terms of Service
-                </a>{' '}
+                </Link>{' '}
                 and{' '}
-                <a href="#" className="text-linkedin-blue hover:underline">
+                <Link href="/privacy" className="text-[#feae34] hover:text-[#f4f4f4] transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </p>
             </div>
           </div>
 
-          <div className="mt-6 border-t border-gray-200 pt-6">
+          <div className="mt-6 pt-6 border-t-2 border-[#3a4466]">
             <div className="text-center">
-              <p className="text-sm text-gray-600">
-                $19/month for unlimited AI posts
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Star className="w-4 h-4 text-[#feae34]" />
+                <p className="font-retro text-xl text-[#63c74d]">
+                  $19/month for unlimited AI posts
+                </p>
+                <Star className="w-4 h-4 text-[#feae34]" />
+              </div>
+              <p className="font-retro text-base text-[#94a3b8]">
                 Payment required after sign in
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
-            &larr; Back to home
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 font-retro text-lg text-[#94a3b8] hover:text-[#feae34] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
           </Link>
         </div>
       </div>
@@ -100,7 +129,7 @@ export default function LoginPage({
 function LinkedInIcon() {
   return (
     <svg
-      className="w-5 h-5"
+      className="w-6 h-6"
       fill="currentColor"
       viewBox="0 0 24 24"
       aria-hidden="true"

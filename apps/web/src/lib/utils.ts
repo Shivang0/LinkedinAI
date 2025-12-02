@@ -1,73 +1,41 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/**
- * Encrypts sensitive data (tokens)
- */
-export function encrypt(text: string): string {
-  // In production, use proper encryption with ENCRYPTION_KEY
-  // For now, using base64 encoding as placeholder
-  if (process.env.NODE_ENV === 'production' && !process.env.ENCRYPTION_KEY) {
-    console.warn('ENCRYPTION_KEY not set in production');
-  }
-  return Buffer.from(text).toString('base64');
-}
-
-/**
- * Decrypts sensitive data
- */
-export function decrypt(encryptedText: string): string {
-  return Buffer.from(encryptedText, 'base64').toString('utf-8');
-}
-
-/**
- * Formats a date for display
- */
-export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-/**
- * Formats a date for calendar display
- */
-export function formatDateTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-/**
- * Truncates text to a maximum length
- */
-export function truncate(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + '...';
-}
-
-/**
- * Counts words in text
- */
-export function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-/**
- * Gets the app URL
- */
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || "default-secret-key-change-in-production";
+const ALGORITHM = "aes-256-gcm";
+
+export function encrypt(text: string): string {
+  const key = crypto.scryptSync(ENCRYPTION_SECRET, "salt", 32);
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag();
+
+  return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
+}
+
+export function decrypt(encrypted: string): string {
+  const [ivHex, authTagHex, encryptedText] = encrypted.split(":");
+  const key = crypto.scryptSync(ENCRYPTION_SECRET, "salt", 32);
+  const iv = Buffer.from(ivHex, "hex");
+  const authTag = Buffer.from(authTagHex, "hex");
+
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+  decipher.setAuthTag(authTag);
+
+  let decrypted = decipher.update(encryptedText, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+
+  return decrypted;
 }

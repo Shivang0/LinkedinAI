@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { X, Calendar, Clock, Sparkles, Save, Send } from 'lucide-react';
 
 // Schedule Modal Component
 function ScheduleModal({
@@ -29,15 +30,27 @@ function ScheduleModal({
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Schedule Post
-        </h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div
+        className="bg-[#262b44] border-4 border-[#f4f4f4] w-full max-w-md p-6 m-4"
+        style={{ boxShadow: '8px 8px 0 #0a0a0f' }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-pixel text-xs text-[#feae34] text-shadow-pixel">
+            SCHEDULE POST
+          </h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 border-2 border-[#f4f4f4] bg-[#e43b44] flex items-center justify-center hover:bg-[#c42f37] transition-colors"
+          >
+            <X className="w-4 h-4 text-[#f4f4f4]" />
+          </button>
+        </div>
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="schedule-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="schedule-date" className="font-retro text-lg text-[#f4f4f4] mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
               Date
             </label>
             <input
@@ -46,12 +59,13 @@ function ScheduleModal({
               min={today}
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
-              className="input"
+              className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] focus:outline-none focus:border-[#feae34]"
             />
           </div>
 
           <div>
-            <label htmlFor="schedule-time" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="schedule-time" className="font-retro text-lg text-[#f4f4f4] mb-2 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
               Time
             </label>
             <input
@@ -59,17 +73,19 @@ function ScheduleModal({
               type="time"
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="input"
+              className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] focus:outline-none focus:border-[#feae34]"
             />
           </div>
 
           {scheduledDate && scheduledTime && (
-            <p className="text-sm text-gray-600">
-              Your post will be published on{' '}
-              <strong>
-                {new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString()}
-              </strong>
-            </p>
+            <div className="bg-[#1a1c2c] border-2 border-[#63c74d] p-3">
+              <p className="font-retro text-lg text-[#63c74d]">
+                Your post will be published on{' '}
+                <strong className="text-[#f4f4f4]">
+                  {new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString()}
+                </strong>
+              </p>
+            </div>
           )}
         </div>
 
@@ -77,16 +93,18 @@ function ScheduleModal({
           <button
             onClick={onClose}
             disabled={isScheduling}
-            className="btn-secondary btn-md flex-1"
+            className="flex-1 font-retro text-lg bg-[#3a4466] hover:bg-[#4a5476] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={!scheduledDate || !scheduledTime || isScheduling}
-            className="btn-primary btn-md flex-1 disabled:opacity-50"
+            className="flex-1 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-2 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+            style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
           >
-            {isScheduling ? 'Scheduling...' : 'Confirm Schedule'}
+            {isScheduling ? 'SCHEDULING...' : 'CONFIRM'}
           </button>
         </div>
       </div>
@@ -292,9 +310,15 @@ export default function ComposePage() {
         isScheduling={isScheduling}
       />
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Create New Post</h1>
-        <p className="text-gray-600 mt-1">
+      {/* Page Header */}
+      <div
+        className="mb-6 bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+        style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+      >
+        <h1 className="font-pixel text-sm md:text-base text-[#e43b44] text-shadow-pixel mb-2">
+          CREATE NEW POST
+        </h1>
+        <p className="font-retro text-xl text-[#94a3b8]">
           Generate engaging LinkedIn content with AI
         </p>
       </div>
@@ -302,13 +326,18 @@ export default function ComposePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Generation Settings */}
         <div className="space-y-6">
-          <div className="card">
-            <h2 className="font-semibold text-gray-900 mb-4">Content Settings</h2>
+          <div
+            className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+            style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+          >
+            <h2 className="font-pixel text-xs text-[#feae34] text-shadow-pixel mb-6">
+              CONTENT SETTINGS
+            </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Topic */}
               <div>
-                <label htmlFor="topic" className="label mb-1 block">
+                <label htmlFor="topic" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                   Topic or Subject *
                 </label>
                 <input
@@ -317,13 +346,13 @@ export default function ComposePage() {
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g., Why I stopped chasing promotions"
-                  className="input"
+                  className="w-full h-10 bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34]"
                 />
               </div>
 
               {/* Key Points */}
               <div>
-                <label htmlFor="keyPoints" className="label mb-1 block">
+                <label htmlFor="keyPoints" className="font-retro text-lg text-[#f4f4f4] mb-2 block">
                   Key Points (optional)
                 </label>
                 <textarea
@@ -331,26 +360,26 @@ export default function ComposePage() {
                   value={keyPoints}
                   onChange={(e) => setKeyPoints(e.target.value)}
                   placeholder="Enter key points, one per line..."
-                  className="textarea"
+                  className="w-full min-h-[80px] bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-2 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34] resize-none"
                   rows={3}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="font-retro text-base text-[#94a3b8] mt-1">
                   Add specific points you want to include
                 </p>
               </div>
 
               {/* Tone */}
               <div>
-                <label className="label mb-2 block">Tone</label>
+                <label className="font-retro text-lg text-[#f4f4f4] mb-3 block">Tone</label>
                 <div className="flex flex-wrap gap-2">
                   {TONE_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setTone(option.value)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      className={`px-3 py-2 font-retro text-base border-2 transition-all ${
                         tone === option.value
-                          ? 'bg-linkedin-blue text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-[#0099db] text-[#f4f4f4] border-[#f4f4f4]'
+                          : 'bg-[#1a1c2c] text-[#94a3b8] border-[#3a4466] hover:border-[#f4f4f4]'
                       }`}
                     >
                       {option.label}
@@ -361,16 +390,16 @@ export default function ComposePage() {
 
               {/* Format */}
               <div>
-                <label className="label mb-2 block">Format</label>
+                <label className="font-retro text-lg text-[#f4f4f4] mb-3 block">Format</label>
                 <div className="flex flex-wrap gap-2">
                   {FORMAT_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setFormat(option.value)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      className={`px-3 py-2 font-retro text-base border-2 transition-all ${
                         format === option.value
-                          ? 'bg-linkedin-blue text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-[#b55088] text-[#f4f4f4] border-[#f4f4f4]'
+                          : 'bg-[#1a1c2c] text-[#94a3b8] border-[#3a4466] hover:border-[#f4f4f4]'
                       }`}
                     >
                       {option.label}
@@ -381,16 +410,16 @@ export default function ComposePage() {
 
               {/* Length */}
               <div>
-                <label className="label mb-2 block">Length</label>
+                <label className="font-retro text-lg text-[#f4f4f4] mb-3 block">Length</label>
                 <div className="flex flex-wrap gap-2">
                   {LENGTH_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setLength(option.value)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      className={`px-3 py-2 font-retro text-base border-2 transition-all ${
                         length === option.value
-                          ? 'bg-linkedin-blue text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-[#63c74d] text-[#1a1c2c] border-[#f4f4f4]'
+                          : 'bg-[#1a1c2c] text-[#94a3b8] border-[#3a4466] hover:border-[#f4f4f4]'
                       }`}
                     >
                       {option.label}
@@ -400,15 +429,15 @@ export default function ComposePage() {
               </div>
 
               {/* Include CTA */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   id="cta"
                   checked={includeCallToAction}
                   onChange={(e) => setIncludeCallToAction(e.target.checked)}
-                  className="w-4 h-4 text-linkedin-blue rounded border-gray-300 focus:ring-linkedin-blue"
+                  className="w-5 h-5 bg-[#1a1c2c] border-2 border-[#f4f4f4] accent-[#63c74d]"
                 />
-                <label htmlFor="cta" className="text-sm text-gray-700">
+                <label htmlFor="cta" className="font-retro text-lg text-[#f4f4f4]">
                   Include call-to-action question at the end
                 </label>
               </div>
@@ -418,13 +447,11 @@ export default function ComposePage() {
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !topic.trim()}
-              className="btn-primary btn-lg w-full mt-6 disabled:opacity-50"
+              className="w-full mt-6 flex items-center justify-center gap-2 font-retro text-xl bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-6 py-4 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+              style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
             >
-              {isGenerating ? (
-                <span>Generating...</span>
-              ) : (
-                <span>Generate Post</span>
-              )}
+              <Sparkles className="w-5 h-5" />
+              {isGenerating ? 'GENERATING...' : 'GENERATE POST'}
             </button>
           </div>
         </div>
@@ -432,15 +459,18 @@ export default function ComposePage() {
         {/* Right Column - Content Editor & Preview */}
         <div className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="p-4 bg-[#e43b44]/20 border-4 border-[#e43b44]">
+              <p className="font-retro text-lg text-[#e43b44]">{error}</p>
             </div>
           )}
 
-          <div className="card">
+          <div
+            className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+            style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900">Post Content</h2>
-              <div className="text-xs text-gray-500">
+              <h2 className="font-pixel text-xs text-[#63c74d] text-shadow-pixel">POST CONTENT</h2>
+              <div className="font-retro text-base text-[#94a3b8]">
                 {wordCount} words - {charCount}/3000 chars
               </div>
             </div>
@@ -449,12 +479,12 @@ export default function ComposePage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Your post content will appear here..."
-              className="textarea min-h-[300px]"
+              className="w-full min-h-[300px] bg-[#1a1c2c] border-4 border-[#f4f4f4] px-3 py-3 font-retro text-lg text-[#f4f4f4] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#feae34] resize-none"
               rows={12}
             />
 
             {charCount > 3000 && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="font-retro text-base text-[#e43b44] mt-2">
                 Content exceeds LinkedIn&apos;s 3000 character limit
               </p>
             )}
@@ -464,28 +494,35 @@ export default function ComposePage() {
               <button
                 onClick={handleSaveAsDraft}
                 disabled={!content.trim() || isSaving}
-                className="btn-secondary btn-md flex-1 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 font-retro text-lg bg-[#feae34] hover:bg-[#e09a2e] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
               >
-                {isSaving ? 'Saving...' : 'Save as Draft'}
+                <Save className="w-4 h-4" />
+                {isSaving ? 'SAVING...' : 'SAVE DRAFT'}
               </button>
               <button
                 onClick={handleSchedule}
                 disabled={!content.trim() || charCount > 3000}
-                className="btn-primary btn-md flex-1 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
               >
-                Schedule Post
+                <Send className="w-4 h-4" />
+                SCHEDULE
               </button>
             </div>
           </div>
 
           {/* LinkedIn Preview */}
           {content && (
-            <div className="card">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                LinkedIn Preview
+            <div
+              className="bg-[#262b44] border-4 border-[#f4f4f4] p-6"
+              style={{ boxShadow: '6px 6px 0 #0a0a0f' }}
+            >
+              <h3 className="font-pixel text-xs text-[#0099db] text-shadow-pixel mb-4">
+                LINKEDIN PREVIEW
               </h3>
-              <div className="linkedin-post-preview">
-                <div className="whitespace-pre-wrap">{content}</div>
+              <div className="bg-[#1a1c2c] border-2 border-[#3a4466] p-4">
+                <div className="font-retro text-lg text-[#f4f4f4] whitespace-pre-wrap">{content}</div>
               </div>
             </div>
           )}
