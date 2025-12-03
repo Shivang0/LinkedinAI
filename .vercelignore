@@ -1,0 +1,6 @@
+# Ignore extension directory - it's not part of the web app deployment
+apps/extension
+
+# Ignore extension build output
+apps/extension/dist
+apps/extension/node_modules
