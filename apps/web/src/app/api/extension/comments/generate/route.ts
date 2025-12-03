@@ -171,38 +171,38 @@ interface ProfileData {
 }
 
 function buildCommentSystemPrompt(profile: ProfileData | null): string {
-  let prompt = `You are writing a LinkedIn comment that DIRECTLY RESPONDS to the specific post content below.
+  let prompt = `You are writing a LinkedIn comment that adds REAL VALUE to the conversation.
 
-CRITICAL: Your comment MUST reference specific details, ideas, or points from the post. Generic comments are NOT acceptable.
+YOUR GOAL: Write something the author would actually want to read - an insight, a different angle, a relevant experience, or a thoughtful question.
 
-YOUR TASK:
-1. READ the post carefully
-2. IDENTIFY the key point or idea the author is making
-3. RESPOND specifically to that point using your experience
+WHAT MAKES A GOOD COMMENT:
+- Adds a new perspective or insight the author didn't mention
+- Shares a brief, relevant experience (without naming your company)
+- Asks a specific, thoughtful question about their point
+- Offers constructive pushback or builds on their idea
+- Shows you actually read and understood their post
 
 SOUND HUMAN:
-- Start mid-thought sometimes ("Funny you mention this..." or "Ha, just dealt with this...")
+- Start naturally, sometimes mid-thought ("This reminds me of..." or "Interesting take -")
 - Use contractions (I'm, you're, we've, that's)
-- Have an actual opinion or reaction
-- Write like texting a smart colleague
-- One emoji max, only if natural
+- Have a clear opinion or reaction
+- Keep it conversational, not formal
+- One emoji max, only if it fits naturally
 
 NEVER DO:
-- Start with "Great post!" or any praise opener
-- Use words: ${BANNED_WORDS.join(', ')}
+- Start with praise ("Great post!", "Love this!", "So true!")
+- Mention your company name or job title explicitly
+- Use buzzwords: ${BANNED_WORDS.join(', ')}
 - Write generic statements that could apply to any post
-- Restate what they said before adding your take`;
+- Just agree without adding anything new`;
 
   if (profile) {
-    prompt += `\n\nYOU ARE THIS PERSON - write as them:`;
-    if (profile.position) prompt += `\n- Role: ${profile.position}`;
-    if (profile.company) prompt += `\n- Company: ${profile.company}`;
-    if (profile.industry) prompt += `\n- Industry: ${profile.industry}`;
-    if (profile.yearsExperience) prompt += `\n- Experience: ${profile.yearsExperience} years`;
-    if (profile.expertise?.length) prompt += `\n- Expertise: ${profile.expertise.join(', ')}`;
-    if (profile.writingStyle) prompt += `\n- Writing style: ${profile.writingStyle}`;
+    prompt += `\n\nYOUR BACKGROUND (use to inform your perspective, but DON'T explicitly mention):`;
+    if (profile.industry) prompt += `\n- You work in: ${profile.industry}`;
+    if (profile.yearsExperience) prompt += `\n- Years of experience: ${profile.yearsExperience}`;
+    if (profile.expertise?.length) prompt += `\n- Your expertise areas: ${profile.expertise.join(', ')}`;
 
-    prompt += `\n\nDraw from YOUR specific work situations when responding to the post.`;
+    prompt += `\n\nUse this background to give you credibility and perspective, but write as a peer sharing thoughts - NOT as someone promoting themselves or their company.`;
   }
 
   return prompt;
@@ -221,29 +221,27 @@ interface CommentParams {
 function buildCommentUserPrompt(params: CommentParams): string {
   const postContent = params.postContent.slice(0, 1500);
 
-  let prompt = `===== THE POST YOU'RE RESPONDING TO =====
+  let prompt = `POST BY ${params.postAuthor}${params.postAuthorHeadline ? ` (${params.postAuthorHeadline})` : ''}:
 "${postContent}"
 
-Author: ${params.postAuthor}${params.postAuthorHeadline ? ` (${params.postAuthorHeadline})` : ''}
-===== END OF POST =====
+---
 
-YOUR COMMENT INSTRUCTIONS:
-- Style: ${STYLE_INSTRUCTIONS[params.style] || 'Add genuine value based on THEIR specific point'}
-- Tone: ${TONE_INSTRUCTIONS[params.tone] || 'Natural and authentic'}
-- Length: ${LENGTH_GUIDE[params.length] || '2-3 sentences'}`;
+Write a comment that:
+1. ${STYLE_INSTRUCTIONS[params.style] || 'Adds genuine value'}
+2. Tone: ${TONE_INSTRUCTIONS[params.tone] || 'Natural and authentic'}
+3. Length: ${LENGTH_GUIDE[params.length] || '2-3 sentences'}`;
 
   if (params.ctaType === 'question') {
-    prompt += `\n- End with: A specific question about something THEY mentioned`;
+    prompt += `\n4. Ends with a thoughtful question`;
   } else if (params.ctaType === 'soft') {
-    prompt += `\n- End with: An open door for continued conversation about THEIR topic`;
+    prompt += `\n4. Leaves room for continued conversation`;
   }
 
   prompt += `
 
-REMEMBER: Your comment must DIRECTLY reference something specific from the post above.
-What specific point are they making? React to THAT.
+KEY: Add something valuable - a fresh insight, relevant experience, or thoughtful angle. Don't just agree or praise.
 
-Write only the comment (no quotes, no explanations):`;
+Comment:`;
 
   return prompt;
 }
