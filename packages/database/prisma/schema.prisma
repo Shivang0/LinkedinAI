@@ -102,13 +102,32 @@ model Subscription {
 model ProfileAnalysis {
   id               String   @id @default(cuid())
   userId           String   @unique @map("user_id")
+
+  // Basic Professional Info
   industry         String?
+  position         String?                           // Job title
+  yearsExperience  Int?     @map("years_experience")
+  company          String?                           // Current company
+
+  // Content & Writing
   expertise        String[] @default([])
   writingStyle     String?  @map("writing_style")
   topicsOfInterest String[] @default([]) @map("topics_of_interest")
+
+  // Content Preferences
+  emojiPreference  String?  @map("emoji_preference")   // none, light, moderate, heavy
+  hashtagUsage     String?  @map("hashtag_usage")      // minimal, moderate, heavy
+
+  // Audience & Goals
+  targetAudience   String?  @map("target_audience")    // Description of target audience
+  contentStrengths String[] @default([]) @map("content_strengths")
+  personalValues   String[] @default([]) @map("personal_values")
+
+  // Existing fields
   audienceProfile  Json?    @map("audience_profile")
   rawProfileData   Json?    @map("raw_profile_data")
   analyzedAt       DateTime @default(now()) @map("analyzed_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -13,6 +13,7 @@ import {
   LogOut,
   Plus,
   TrendingUp,
+  User,
 } from 'lucide-react';
 
 export default async function DashboardLayout({
@@ -191,6 +192,13 @@ function UserMenu({
           <p className="font-retro text-lg text-[#f4f4f4] truncate">{name}</p>
           <p className="font-retro text-base text-[#94a3b8] truncate">{email}</p>
         </div>
+        <Link
+          href="/profile"
+          className="flex items-center gap-3 px-4 py-2 font-retro text-lg text-[#f4f4f4] hover:bg-[#3a4466] transition-colors"
+        >
+          <User className="w-4 h-4" />
+          Profile
+        </Link>
         <Link
           href="/settings"
           className="flex items-center gap-3 px-4 py-2 font-retro text-lg text-[#f4f4f4] hover:bg-[#3a4466] transition-colors"

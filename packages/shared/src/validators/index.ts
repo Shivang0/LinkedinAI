@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// Re-export z for use in other packages
+export { z };
+
+// Emoji level enum
+export const emojiLevelSchema = z.enum(['none', 'light', 'moderate', 'heavy']);
+
 // Generation params validation
 export const generationParamsSchema = z.object({
   topic: z.string().optional(),
@@ -10,6 +16,7 @@ export const generationParamsSchema = z.object({
   includeCallToAction: z.boolean().optional(),
   targetAudience: z.string().optional(),
   length: z.enum(['short', 'medium', 'long']).optional(),
+  emojiLevel: emojiLevelSchema.optional().default('none'),
 });
 
 export type GenerationParamsInput = z.infer<typeof generationParamsSchema>;

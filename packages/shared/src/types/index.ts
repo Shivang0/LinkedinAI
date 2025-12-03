@@ -61,13 +61,33 @@ export interface TemplateVariable {
   defaultValue?: string;
 }
 
+export type EmojiLevel = 'none' | 'light' | 'moderate' | 'heavy';
+export type HashtagUsage = 'minimal' | 'moderate' | 'heavy';
+
 export interface ProfileAnalysis {
   id: string;
   userId: string;
+
+  // Basic Professional Info
   industry?: string | null;
+  position?: string | null;
+  yearsExperience?: number | null;
+  company?: string | null;
+
+  // Content & Writing
   expertise: string[];
   writingStyle?: string | null;
   topicsOfInterest: string[];
+
+  // Content Preferences
+  emojiPreference?: EmojiLevel | null;
+  hashtagUsage?: HashtagUsage | null;
+
+  // Audience & Goals
+  targetAudience?: string | null;
+  contentStrengths: string[];
+  personalValues: string[];
+
   audienceProfile?: AudienceProfile | null;
 }
 
@@ -109,6 +129,7 @@ export interface GenerationParams {
   includeCallToAction?: boolean;
   targetAudience?: string;
   length?: 'short' | 'medium' | 'long';
+  emojiLevel?: EmojiLevel;
 }
 
 export interface GeneratedContent {

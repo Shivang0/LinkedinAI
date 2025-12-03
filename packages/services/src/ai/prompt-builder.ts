@@ -1,5 +1,75 @@
-import type { GenerationParams, ProfileAnalysis } from '@linkedin-ai/shared';
+import type { GenerationParams, ProfileAnalysis, EmojiLevel } from '@linkedin-ai/shared';
 import { BANNED_WORDS } from './content-rules';
+
+/**
+ * Emoji level instructions for AI generation
+ */
+const EMOJI_INSTRUCTIONS: Record<EmojiLevel, string> = {
+  none: 'Do NOT include any emojis in the post.',
+  light: 'Include 1-2 relevant emojis sparingly (e.g., at section breaks or key points).',
+  moderate: 'Include 3-5 emojis throughout the post to add visual interest.',
+  heavy: 'Include 6+ emojis liberally throughout the post for high engagement and visual appeal.',
+};
+
+/**
+ * Builds the profile context section for the system prompt
+ */
+function buildProfileContext(profile: ProfileAnalysis): string {
+  const lines: string[] = ['\nUSER CONTEXT (write in their voice):'];
+
+  // Professional context
+  if (profile.position || profile.company) {
+    let role = `- Role: ${profile.position || 'Professional'}`;
+    if (profile.company) role += ` at ${profile.company}`;
+    lines.push(role);
+  }
+
+  if (profile.yearsExperience) {
+    lines.push(`- Experience: ${profile.yearsExperience} years in the field`);
+  }
+
+  if (profile.industry) {
+    lines.push(`- Industry: ${profile.industry}`);
+  }
+
+  // Expertise & Style
+  if (profile.expertise?.length > 0) {
+    lines.push(`- Expertise: ${profile.expertise.join(', ')}`);
+  }
+
+  if (profile.writingStyle) {
+    lines.push(`- Writing style: ${profile.writingStyle}`);
+  }
+
+  if (profile.topicsOfInterest?.length > 0) {
+    lines.push(`- Topics of interest: ${profile.topicsOfInterest.join(', ')}`);
+  }
+
+  // Content preferences
+  if (profile.contentStrengths?.length > 0) {
+    lines.push(`- Content strengths: ${profile.contentStrengths.join(', ')}`);
+  }
+
+  if (profile.personalValues?.length > 0) {
+    lines.push(`- Values to reflect: ${profile.personalValues.join(', ')}`);
+  }
+
+  // Audience
+  if (profile.targetAudience) {
+    lines.push(`- Target audience: ${profile.targetAudience}`);
+  }
+
+  // Default preferences
+  if (profile.emojiPreference) {
+    lines.push(`- Default emoji style: ${profile.emojiPreference}`);
+  }
+
+  if (profile.hashtagUsage) {
+    lines.push(`- Hashtag preference: ${profile.hashtagUsage}`);
+  }
+
+  return lines.join('\n');
+}
 
 /**
  * Builds the system prompt for AI content generation
@@ -56,13 +126,7 @@ CRITICAL RULES - YOU MUST FOLLOW THESE:
    - Questions to the reader
    - Incomplete thoughts or parenthetical asides
 
-${profile ? `
-USER CONTEXT (write in their voice):
-- Industry: ${profile.industry || 'Not specified'}
-- Expertise: ${profile.expertise?.join(', ') || 'General professional'}
-- Writing style: ${profile.writingStyle || 'Professional but approachable'}
-- Topics of interest: ${profile.topicsOfInterest?.join(', ') || 'Business, career growth'}
-` : ''}
+${profile ? buildProfileContext(profile) : ''}
 
 Remember: The goal is authentic engagement, not virality. Write like a real person sharing genuine insights.`;
 }
@@ -130,7 +194,14 @@ export function buildUserPrompt(params: GenerationParams): string {
   parts.push(`\nLENGTH: ${lengthGuidance[params.length || 'medium']}`);
 
   if (params.includeCallToAction) {
-    parts.push('\nInclude a call-to-action at the end that encourages comments (ask a genuine question).');
+    parts.push('\nEND with an engaging question that invites readers to share their thoughts, experiences, or opinions. The question should be open-ended and directly related to the topic. This is NOT optional - the post MUST end with a question.');
+  }
+
+  // Add emoji level instruction
+  if (params.emojiLevel) {
+    parts.push(`\nEMOJI USAGE: ${EMOJI_INSTRUCTIONS[params.emojiLevel]}`);
+  } else {
+    parts.push(`\nEMOJI USAGE: ${EMOJI_INSTRUCTIONS.none}`);
   }
 
   parts.push(`\n

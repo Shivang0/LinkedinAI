@@ -137,6 +137,13 @@ const LENGTH_OPTIONS = [
   { value: 'long', label: 'Long (400-600 words)' },
 ];
 
+const EMOJI_LEVEL_OPTIONS = [
+  { value: 'none', label: 'None', icon: '🚫' },
+  { value: 'light', label: 'Light', icon: '😊' },
+  { value: 'moderate', label: 'Moderate', icon: '😄' },
+  { value: 'heavy', label: 'Heavy', icon: '🎉' },
+];
+
 export default function ComposePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -149,6 +156,7 @@ export default function ComposePage() {
   const [length, setLength] = useState('medium');
   const [keyPoints, setKeyPoints] = useState('');
   const [includeCallToAction, setIncludeCallToAction] = useState(true);
+  const [emojiLevel, setEmojiLevel] = useState('none');
 
   const [content, setContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -205,6 +213,7 @@ export default function ComposePage() {
             ? keyPoints.split('\n').filter(Boolean)
             : undefined,
           includeCallToAction,
+          emojiLevel,
         }),
       });
 
@@ -475,6 +484,29 @@ export default function ComposePage() {
                 <label htmlFor="cta" className="font-retro text-lg text-[#f4f4f4]">
                   Include call-to-action question at the end
                 </label>
+              </div>
+
+              {/* Emoji Level */}
+              <div>
+                <label className="font-retro text-lg text-[#f4f4f4] mb-3 block">Emoji Level</label>
+                <div className="flex flex-wrap gap-2">
+                  {EMOJI_LEVEL_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setEmojiLevel(option.value)}
+                      className={`px-3 py-2 font-retro text-base border-2 transition-all ${
+                        emojiLevel === option.value
+                          ? 'bg-[#feae34] text-[#1a1c2c] border-[#f4f4f4]'
+                          : 'bg-[#1a1c2c] text-[#94a3b8] border-[#3a4466] hover:border-[#f4f4f4]'
+                      }`}
+                    >
+                      {option.icon} {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="font-retro text-base text-[#94a3b8] mt-2">
+                  Control how many emojis appear in the generated post
+                </p>
               </div>
             </div>
 
