@@ -23,46 +23,30 @@ const commentGenerationSchema = z.object({
   ctaType: z.enum(['none', 'question', 'soft']).optional().default('none'),
 });
 
-// Minimal system prompt
-const SYSTEM_PROMPT = `Read the post. Write a useful comment.
-
-Good comments:
-- Add a fresh perspective or angle
-- Ask a thoughtful question
-- Share a relevant insight
-- Offer constructive feedback
-
-Bad comments:
-- Generic praise ("Great post!", "Love this!")
-- Restating what they said
-- Buzzwords (insightful, resonate, valuable, leverage)
-
-Keep it natural and conversational. No emojis unless truly fitting.`;
-
-// Style hints
-const STYLES: Record<string, string> = {
-  agree: "agree and add substance",
-  "add-value": "add a new angle they missed",
-  question: "ask a thoughtful question",
-  "personal-story": "share a brief relevant insight"
-};
-
-// Tone hints
-const TONES: Record<string, string> = {
-  professional: "professional",
-  casual: "casual",
-  supportive: "supportive",
-  curious: "curious",
-  humorous: "witty",
-  "thought-provoking": "thought-provoking",
-  inspirational: "inspiring"
-};
-
-// Length guide
+// Word-based length (more precise than sentences)
 const LENGTHS: Record<string, string> = {
-  short: "1-2 sentences",
-  medium: "2-3 sentences",
-  long: "4-5 sentences"
+  short: '15-30w',
+  medium: '50-75w',
+  long: '100-150w'
+};
+
+// Compact tone mapping
+const TONES: Record<string, string> = {
+  professional: 'pro',
+  casual: 'casual',
+  supportive: 'supportive',
+  curious: 'curious',
+  humorous: 'witty',
+  'thought-provoking': 'thoughtful',
+  inspirational: 'inspiring'
+};
+
+// Style actions
+const STYLES: Record<string, string> = {
+  agree: 'agree + add substance',
+  'add-value': 'add new angle',
+  question: 'ask thoughtful question',
+  'personal-story': 'share brief insight'
 };
 
 export async function POST(request: Request) {
@@ -89,16 +73,15 @@ export async function POST(request: Request) {
     }
 
     const params = result.data;
-    const userPrompt = buildUserPrompt(params);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const maxTokens = params.length === 'long' ? 300 : params.length === 'medium' ? 200 : 150;
+    const maxTokens = params.length === 'long' ? 200 : params.length === 'medium' ? 150 : 100;
 
     // Generate main comment
     const mainResponse = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
+        { role: 'system', content: getSystemPrompt() },
+        { role: 'user', content: buildUserPrompt(params) },
       ],
       temperature: 0.9,
       max_tokens: maxTokens,
@@ -111,12 +94,11 @@ export async function POST(request: Request) {
     const alternatives: string[] = [];
 
     for (const style of altStyles) {
-      const altPrompt = buildUserPrompt({ ...params, style });
       const altResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: altPrompt },
+          { role: 'system', content: getSystemPrompt() },
+          { role: 'user', content: buildUserPrompt({ ...params, style }) },
         ],
         temperature: 0.9,
         max_tokens: maxTokens,
@@ -131,6 +113,10 @@ export async function POST(request: Request) {
   }
 }
 
+function getSystemPrompt(): string {
+  return `Write natural LinkedIn comments. Use contractions. NO em-dashes, colons, semicolons. NO AI words: delve, insightful, resonate, leverage, valuable.`;
+}
+
 function buildUserPrompt(params: {
   postContent: string;
   postAuthor: string;
@@ -140,10 +126,19 @@ function buildUserPrompt(params: {
   length: string;
   ctaType?: string;
 }): string {
-  return `Post by ${params.postAuthor}:
-"${params.postContent.slice(0, 1500)}"
+  const len = LENGTHS[params.length] || '50-75w';
+  const tone = TONES[params.tone] || 'pro';
+  const style = STYLES[params.style] || 'add value';
 
-Write a ${TONES[params.tone] || 'natural'} comment that ${STYLES[params.style] || 'adds value'}. Keep it ${LENGTHS[params.length] || '2-3 sentences'}.${params.ctaType === 'question' ? ' End with a question.' : ''}
+  return `Write ${len} ${tone} LinkedIn comment. ${style}.
+
+Post: ${params.postContent.slice(0, 1500)}
+
+Rules:
+- Reference specific points from post
+- Use contractions
+- NO em-dashes, colons, semicolons
+- Add value${params.ctaType === 'question' ? '\n- End with question' : ''}
 
 Comment:`;
 }
@@ -151,6 +146,8 @@ Comment:`;
 function cleanComment(text: string): string {
   let cleaned = text
     .replace(/—/g, '-')
+    .replace(/:/g, ',')
+    .replace(/;/g, ',')
     .replace(/^["']|["']$/g, '')
     .replace(/\n{2,}/g, '\n')
     .trim();
