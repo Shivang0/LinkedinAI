@@ -26,61 +26,39 @@ const commentGenerationSchema = z.object({
   ctaType: z.enum(['none', 'question', 'soft']).optional().default('none'),
 });
 
+// Banned words for AI detection
+const BANNED_WORDS = ["insightful", "resonate", "valuable", "leverage", "unpack", "highlight", "appreciate", "game-changer", "thought-provoking", "delve", "paradigm"];
+
 /**
- * Hybrid JSON/Natural Language config for comment generation
- * Reduces token usage by ~62% while maintaining quality
+ * Style instructions - detailed for context
  */
-const COMMENT_CONFIG = {
-  role: "LinkedIn comment ghostwriter",
-  goal: "Sound like typed on phone between meetings",
-  do: [
-    "Start mid-thought naturally",
-    "Use contractions",
-    "Reference specific experience",
-    "Have opinions",
-    "One emoji max"
-  ],
-  never: [
-    "Start with praise (Great post!, Love this)",
-    "Use: insightful, resonate, valuable, leverage, unpack",
-    "Perfect grammar throughout",
-    "Restate post content",
-    "Generic statements"
-  ],
-  banned_words: ["insightful", "resonate", "valuable", "leverage", "unpack", "highlight", "appreciate", "game-changer", "thought-provoking"],
-  test: "Would busy professional type this?"
+const STYLE_INSTRUCTIONS: Record<string, string> = {
+  agree: "Back them up with a quick example from YOUR work that relates to THEIR specific point",
+  "add-value": "Add something they didn't mention - a different angle or related lesson from YOUR experience",
+  question: "Ask something specific you're genuinely curious about based on what THEY wrote",
+  "personal-story": "Share a quick moment from YOUR work that directly relates to THEIR post"
 };
 
 /**
- * Style mappings - concise
+ * Tone instructions - detailed for context
  */
-const STYLE_MAP: Record<string, string> = {
-  agree: "Back up with example",
-  "add-value": "Add angle they missed",
-  question: "Ask something specific",
-  "personal-story": "Quick relevant moment"
+const TONE_INSTRUCTIONS: Record<string, string> = {
+  professional: "Smart colleague energy - competent but not stiff",
+  casual: "Coffee chat vibes - like responding to a friend's story",
+  supportive: "Genuine encouragement - acknowledge their specific effort",
+  curious: "Actually interested - ask what you want to know about their topic",
+  humorous: "Quick wit - one light observation about their specific point",
+  "thought-provoking": "Respectful pushback - add nuance to their specific argument",
+  inspirational: "Real optimism - connect their idea to something bigger"
 };
 
 /**
- * Tone mappings - concise
+ * Length guidance
  */
-const TONE_MAP: Record<string, string> = {
-  professional: "Smart colleague",
-  casual: "Coffee chat",
-  supportive: "Genuine encouragement",
-  curious: "Actually interested",
-  humorous: "Quick wit",
-  "thought-provoking": "Respectful pushback",
-  inspirational: "Real optimism"
-};
-
-/**
- * Length mappings
- */
-const LENGTH_MAP: Record<string, string> = {
-  short: "1-2 sentences",
-  medium: "2-3 sentences",
-  long: "4-6 sentences"
+const LENGTH_GUIDE: Record<string, string> = {
+  short: "1-2 punchy sentences",
+  medium: "2-3 sentences with room to add value",
+  long: "4-6 sentences to develop your response"
 };
 
 // POST /api/extension/comments/generate - Generate a comment
@@ -193,21 +171,38 @@ interface ProfileData {
 }
 
 function buildCommentSystemPrompt(profile: ProfileData | null): string {
-  let prompt = `CONFIG: ${JSON.stringify(COMMENT_CONFIG)}`;
+  let prompt = `You are writing a LinkedIn comment that DIRECTLY RESPONDS to the specific post content below.
+
+CRITICAL: Your comment MUST reference specific details, ideas, or points from the post. Generic comments are NOT acceptable.
+
+YOUR TASK:
+1. READ the post carefully
+2. IDENTIFY the key point or idea the author is making
+3. RESPOND specifically to that point using your experience
+
+SOUND HUMAN:
+- Start mid-thought sometimes ("Funny you mention this..." or "Ha, just dealt with this...")
+- Use contractions (I'm, you're, we've, that's)
+- Have an actual opinion or reaction
+- Write like texting a smart colleague
+- One emoji max, only if natural
+
+NEVER DO:
+- Start with "Great post!" or any praise opener
+- Use words: ${BANNED_WORDS.join(', ')}
+- Write generic statements that could apply to any post
+- Restate what they said before adding your take`;
 
   if (profile) {
-    const persona: Record<string, unknown> = {};
+    prompt += `\n\nYOU ARE THIS PERSON - write as them:`;
+    if (profile.position) prompt += `\n- Role: ${profile.position}`;
+    if (profile.company) prompt += `\n- Company: ${profile.company}`;
+    if (profile.industry) prompt += `\n- Industry: ${profile.industry}`;
+    if (profile.yearsExperience) prompt += `\n- Experience: ${profile.yearsExperience} years`;
+    if (profile.expertise?.length) prompt += `\n- Expertise: ${profile.expertise.join(', ')}`;
+    if (profile.writingStyle) prompt += `\n- Writing style: ${profile.writingStyle}`;
 
-    if (profile.position) persona.role = profile.position;
-    if (profile.company) persona.company = profile.company;
-    if (profile.industry) persona.industry = profile.industry;
-    if (profile.yearsExperience) persona.years = profile.yearsExperience;
-    if (profile.expertise?.length) persona.expertise = profile.expertise;
-    if (profile.writingStyle) persona.style = profile.writingStyle;
-    if (profile.emojiPreference) persona.emoji = profile.emojiPreference;
-
-    prompt += `\nPERSONA: ${JSON.stringify(persona)}`;
-    prompt += `\nUSE PERSONA: Reference YOUR specific work situations.`;
+    prompt += `\n\nDraw from YOUR specific work situations when responding to the post.`;
   }
 
   return prompt;
@@ -224,19 +219,31 @@ interface CommentParams {
 }
 
 function buildCommentUserPrompt(params: CommentParams): string {
-  let prompt = `POST: "${params.postContent.slice(0, 1500)}"
-BY: ${params.postAuthor}${params.postAuthorHeadline ? ` (${params.postAuthorHeadline})` : ''}
-STYLE: ${STYLE_MAP[params.style] || 'Add value'}
-TONE: ${TONE_MAP[params.tone] || 'Natural'}
-LENGTH: ${LENGTH_MAP[params.length] || '2-3 sentences'}`;
+  const postContent = params.postContent.slice(0, 1500);
+
+  let prompt = `===== THE POST YOU'RE RESPONDING TO =====
+"${postContent}"
+
+Author: ${params.postAuthor}${params.postAuthorHeadline ? ` (${params.postAuthorHeadline})` : ''}
+===== END OF POST =====
+
+YOUR COMMENT INSTRUCTIONS:
+- Style: ${STYLE_INSTRUCTIONS[params.style] || 'Add genuine value based on THEIR specific point'}
+- Tone: ${TONE_INSTRUCTIONS[params.tone] || 'Natural and authentic'}
+- Length: ${LENGTH_GUIDE[params.length] || '2-3 sentences'}`;
 
   if (params.ctaType === 'question') {
-    prompt += `\nCTA: End with question`;
+    prompt += `\n- End with: A specific question about something THEY mentioned`;
   } else if (params.ctaType === 'soft') {
-    prompt += `\nCTA: Open invitation`;
+    prompt += `\n- End with: An open door for continued conversation about THEIR topic`;
   }
 
-  prompt += `\nOUTPUT: Comment only.`;
+  prompt += `
+
+REMEMBER: Your comment must DIRECTLY reference something specific from the post above.
+What specific point are they making? React to THAT.
+
+Write only the comment (no quotes, no explanations):`;
 
   return prompt;
 }
