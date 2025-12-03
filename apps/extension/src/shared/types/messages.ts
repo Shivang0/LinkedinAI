@@ -1,4 +1,4 @@
-import type { CommentTone, CommentStyle, CommentLength } from '../constants';
+import type { CommentTone, CommentStyle, CommentLength, CtaType } from '../constants';
 
 // Message types for communication between content script and background
 export type MessageType =
@@ -7,7 +7,8 @@ export type MessageType =
   | 'LOGIN'
   | 'LOGOUT'
   | 'REFRESH_TOKEN'
-  | 'GET_USER_INFO';
+  | 'GET_USER_INFO'
+  | 'STORE_AUTH_TOKEN';
 
 // Base message interface
 export interface BaseMessage<T extends MessageType, P = void> {
@@ -23,6 +24,7 @@ export interface GenerateCommentPayload {
   tone: CommentTone;
   style: CommentStyle;
   length: CommentLength;
+  ctaType?: CtaType;
 }
 
 export type GenerateCommentMessage = BaseMessage<'GENERATE_COMMENT', GenerateCommentPayload>;
@@ -34,6 +36,13 @@ export type LogoutMessage = BaseMessage<'LOGOUT'>;
 export type RefreshTokenMessage = BaseMessage<'REFRESH_TOKEN'>;
 export type GetUserInfoMessage = BaseMessage<'GET_USER_INFO'>;
 
+// Store auth token message (from auth-capture content script)
+export interface StoreAuthTokenPayload {
+  token: string;
+  expiresAt: number;
+}
+export type StoreAuthTokenMessage = BaseMessage<'STORE_AUTH_TOKEN', StoreAuthTokenPayload>;
+
 // Union of all message types
 export type ExtensionMessage =
   | GenerateCommentMessage
@@ -41,7 +50,8 @@ export type ExtensionMessage =
   | LoginMessage
   | LogoutMessage
   | RefreshTokenMessage
-  | GetUserInfoMessage;
+  | GetUserInfoMessage
+  | StoreAuthTokenMessage;
 
 // Response types
 export interface GenerateCommentResponse {

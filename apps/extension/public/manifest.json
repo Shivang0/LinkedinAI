@@ -21,7 +21,12 @@
     {
       "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
       "js": ["src/content/index.ts"],
-      "css": ["src/content/styles/content.css"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://linekdin.vercel.app/extension/authorize*", "http://localhost:3000/extension/authorize*"],
+      "js": ["src/content/auth-capture.ts"],
       "run_at": "document_idle"
     }
   ],

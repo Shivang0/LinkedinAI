@@ -6,7 +6,7 @@ import type {
   SimpleResponse,
 } from '@/shared/types/messages';
 import { isAuthenticated, clearAuth, getUserInfo, needsTokenRefresh, setAuth, getAuth } from '@/shared/storage';
-import { generateComment, verifyAuth, refreshToken } from './api-client';
+import { generateComment, verifyAuth, verifyAuthWithToken, refreshToken } from './api-client';
 import { API_BASE_URL } from '@/shared/constants';
 
 /**
@@ -48,6 +48,9 @@ async function handleMessage(message: ExtensionMessage): Promise<unknown> {
 
     case 'GET_USER_INFO':
       return handleGetUserInfo();
+
+    case 'STORE_AUTH_TOKEN':
+      return handleStoreAuthToken(message.payload);
 
     default:
       return { success: false, error: 'Unknown message type' };
@@ -179,4 +182,39 @@ async function handleGetUserInfo(): Promise<UserInfoResponse> {
     success: true,
     user: userInfo,
   };
+}
+
+/**
+ * Handle storing auth token from auth-capture content script
+ */
+async function handleStoreAuthToken(
+  payload: { token: string; expiresAt: number }
+): Promise<SimpleResponse> {
+  try {
+    console.log('[LinkedIn AI] Storing auth token...');
+
+    // Verify the token and get user info
+    const authResult = await verifyAuthWithToken(payload.token);
+
+    if (!authResult.authenticated || !authResult.user) {
+      console.error('[LinkedIn AI] Token verification failed');
+      return { success: false, error: 'Invalid or expired token' };
+    }
+
+    // Store the complete auth data
+    await setAuth({
+      token: payload.token,
+      expiresAt: payload.expiresAt,
+      userId: authResult.user.id,
+      name: authResult.user.name,
+      email: authResult.user.email,
+      accountStatus: authResult.user.accountStatus,
+    });
+
+    console.log('[LinkedIn AI] Auth token stored successfully for:', authResult.user.email);
+    return { success: true };
+  } catch (error) {
+    console.error('[LinkedIn AI] Error storing auth token:', error);
+    return { success: false, error: 'Failed to store authentication' };
+  }
 }

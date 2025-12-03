@@ -1,7 +1,7 @@
 import type { LinkedInPostContext, GenerateCommentResponse } from '@/shared/types/messages';
 import { sendMessage } from '@/shared/types/messages';
-import type { CommentTone, CommentStyle, CommentLength } from '@/shared/constants';
-import { COMMENT_TONES, COMMENT_STYLES } from '@/shared/constants';
+import type { CommentTone, CommentStyle, CommentLength, CtaType } from '@/shared/constants';
+import { COMMENT_TONES, COMMENT_STYLES, COMMENT_LENGTHS, CTA_TYPES } from '@/shared/constants';
 import { findCommentBox, insertIntoCommentBox } from './post-detector';
 
 let currentModal: HTMLElement | null = null;
@@ -11,6 +11,7 @@ interface ModalState {
   tone: CommentTone;
   style: CommentStyle;
   length: CommentLength;
+  ctaType: CtaType;
   isLoading: boolean;
   error: string | null;
   comment: string | null;
@@ -34,6 +35,7 @@ export async function showCommentModal(postData: LinkedInPostContext, anchorButt
     tone: 'professional',
     style: 'add-value',
     length: 'short',
+    ctaType: 'none',
     isLoading: false,
     error: null,
     comment: null,
@@ -119,16 +121,29 @@ function renderAuthPrompt(): string {
  * Render main content for authenticated users
  */
 function renderMainContent(state: ModalState): string {
+  // Split tones into two rows for better layout
+  const toneRow1 = COMMENT_TONES.slice(0, 4);
+  const toneRow2 = COMMENT_TONES.slice(4);
+
   return `
     <div class="linkedin-ai-section">
       <div class="linkedin-ai-section-label">Tone</div>
       <div class="linkedin-ai-tone-buttons">
-        ${COMMENT_TONES.map(tone => `
+        ${toneRow1.map(tone => `
           <button class="linkedin-ai-tone-btn ${state.tone === tone ? 'active' : ''}" data-tone="${tone}">
-            ${tone.charAt(0).toUpperCase() + tone.slice(1)}
+            ${formatToneLabel(tone)}
           </button>
         `).join('')}
       </div>
+      ${toneRow2.length > 0 ? `
+        <div class="linkedin-ai-tone-buttons" style="margin-top: 6px;">
+          ${toneRow2.map(tone => `
+            <button class="linkedin-ai-tone-btn ${state.tone === tone ? 'active' : ''}" data-tone="${tone}">
+              ${formatToneLabel(tone)}
+            </button>
+          `).join('')}
+        </div>
+      ` : ''}
     </div>
 
     <div class="linkedin-ai-section">
@@ -137,6 +152,28 @@ function renderMainContent(state: ModalState): string {
         ${COMMENT_STYLES.map(style => `
           <button class="linkedin-ai-tone-btn ${state.style === style ? 'active' : ''}" data-style="${style}">
             ${formatStyleLabel(style)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="linkedin-ai-section">
+      <div class="linkedin-ai-section-label">Length</div>
+      <div class="linkedin-ai-tone-buttons">
+        ${COMMENT_LENGTHS.map(length => `
+          <button class="linkedin-ai-tone-btn ${state.length === length ? 'active' : ''}" data-length="${length}">
+            ${formatLengthLabel(length)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="linkedin-ai-section">
+      <div class="linkedin-ai-section-label">Call to Action</div>
+      <div class="linkedin-ai-tone-buttons">
+        ${CTA_TYPES.map(cta => `
+          <button class="linkedin-ai-tone-btn ${state.ctaType === cta ? 'active' : ''}" data-cta="${cta}">
+            ${formatCtaLabel(cta)}
           </button>
         `).join('')}
       </div>
@@ -264,6 +301,22 @@ function setupEventListeners(modal: HTMLElement, state: ModalState, anchorButton
     });
   });
 
+  // Length buttons
+  modal.querySelectorAll('[data-length]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.length = (btn as HTMLElement).dataset.length as CommentLength;
+      renderModalContent(modal, state, anchorButton);
+    });
+  });
+
+  // CTA buttons
+  modal.querySelectorAll('[data-cta]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.ctaType = (btn as HTMLElement).dataset.cta as CtaType;
+      renderModalContent(modal, state, anchorButton);
+    });
+  });
+
   // Generate/Regenerate button
   modal.querySelector('.linkedin-ai-regenerate-btn')?.addEventListener('click', async () => {
     await generateComment(modal, state, anchorButton);
@@ -314,6 +367,7 @@ async function generateComment(modal: HTMLElement, state: ModalState, anchorButt
       tone: state.tone,
       style: state.style,
       length: state.length,
+      ctaType: state.ctaType,
     },
   });
 
@@ -363,6 +417,22 @@ function insertComment(comment: string, anchorButton: HTMLElement): void {
 }
 
 /**
+ * Format tone label for display
+ */
+function formatToneLabel(tone: CommentTone): string {
+  const labels: Record<CommentTone, string> = {
+    'professional': 'Professional',
+    'casual': 'Casual',
+    'supportive': 'Supportive',
+    'curious': 'Curious',
+    'humorous': 'Humorous',
+    'thought-provoking': 'Thought-provoking',
+    'inspirational': 'Inspirational',
+  };
+  return labels[tone] || tone;
+}
+
+/**
  * Format style label for display
  */
 function formatStyleLabel(style: CommentStyle): string {
@@ -373,4 +443,28 @@ function formatStyleLabel(style: CommentStyle): string {
     'personal-story': 'Story',
   };
   return labels[style] || style;
+}
+
+/**
+ * Format length label for display
+ */
+function formatLengthLabel(length: CommentLength): string {
+  const labels: Record<CommentLength, string> = {
+    'short': 'Short',
+    'medium': 'Medium',
+    'long': 'Long',
+  };
+  return labels[length] || length;
+}
+
+/**
+ * Format CTA label for display
+ */
+function formatCtaLabel(cta: CtaType): string {
+  const labels: Record<CtaType, string> = {
+    'none': 'Off',
+    'question': 'Question',
+    'soft': 'Soft prompt',
+  };
+  return labels[cta] || cta;
 }

@@ -2,238 +2,179 @@ import type { GenerationParams, ProfileAnalysis, EmojiLevel } from '@linkedin-ai
 import { BANNED_WORDS } from './content-rules';
 
 /**
- * Emoji level instructions for AI generation
+ * Hybrid JSON/Natural Language prompt configuration for post generation
+ * Reduces token usage by ~60% while maintaining quality
  */
-const EMOJI_INSTRUCTIONS: Record<EmojiLevel, string> = {
-  none: 'Do NOT include any emojis in the post.',
-  light: 'Include 1-2 relevant emojis sparingly (e.g., at section breaks or key points).',
-  moderate: 'Include 3-5 emojis throughout the post to add visual interest.',
-  heavy: 'Include 6+ emojis liberally throughout the post for high engagement and visual appeal.',
+const POST_CONFIG = {
+  role: "LinkedIn post writer (AS user, not FOR user)",
+  goal: "Authentic, human-sounding content",
+  rules: {
+    never: [
+      "em-dashes (—)",
+      "Start with: 'In today's world', 'Here's why', 'I wanted to share'",
+      "Generic numbered lists without context",
+      "Corporate jargon and buzzwords"
+    ],
+    always: [
+      "Contractions (I'm, you're, don't, can't)",
+      "Varied sentence length (mix short punchy + longer)",
+      "First person + direct 'you'",
+      "Line breaks between thoughts",
+      "Personal anecdotes with specifics",
+      "Opinions, not just facts"
+    ],
+    banned_words: BANNED_WORDS.slice(0, 15)
+  },
+  structure: ["Hook (scroll-stopper)", "Body (skimmable)", "Takeaway", "CTA/Question"],
+  format: {
+    paragraphs: "1-3 sentences max",
+    hashtags: "3-5 at end",
+    emojis: "0-3 max unless specified"
+  }
 };
 
 /**
- * Builds the profile context section for the system prompt
+ * Emoji level mapping - concise
  */
-function buildProfileContext(profile: ProfileAnalysis): string {
-  const lines: string[] = ['\nUSER CONTEXT (write in their voice):'];
-
-  // Professional context
-  if (profile.position || profile.company) {
-    let role = `- Role: ${profile.position || 'Professional'}`;
-    if (profile.company) role += ` at ${profile.company}`;
-    lines.push(role);
-  }
-
-  if (profile.yearsExperience) {
-    lines.push(`- Experience: ${profile.yearsExperience} years in the field`);
-  }
-
-  if (profile.industry) {
-    lines.push(`- Industry: ${profile.industry}`);
-  }
-
-  // Expertise & Style
-  if (profile.expertise?.length > 0) {
-    lines.push(`- Expertise: ${profile.expertise.join(', ')}`);
-  }
-
-  if (profile.writingStyle) {
-    lines.push(`- Writing style: ${profile.writingStyle}`);
-  }
-
-  if (profile.topicsOfInterest?.length > 0) {
-    lines.push(`- Topics of interest: ${profile.topicsOfInterest.join(', ')}`);
-  }
-
-  // Content preferences
-  if (profile.contentStrengths?.length > 0) {
-    lines.push(`- Content strengths: ${profile.contentStrengths.join(', ')}`);
-  }
-
-  if (profile.personalValues?.length > 0) {
-    lines.push(`- Values to reflect: ${profile.personalValues.join(', ')}`);
-  }
-
-  // Audience
-  if (profile.targetAudience) {
-    lines.push(`- Target audience: ${profile.targetAudience}`);
-  }
-
-  // Default preferences
-  if (profile.emojiPreference) {
-    lines.push(`- Default emoji style: ${profile.emojiPreference}`);
-  }
-
-  if (profile.hashtagUsage) {
-    lines.push(`- Hashtag preference: ${profile.hashtagUsage}`);
-  }
-
-  return lines.join('\n');
-}
+const EMOJI_MAP: Record<EmojiLevel, string> = {
+  none: "0 emojis",
+  light: "1-2 emojis",
+  moderate: "3-5 emojis",
+  heavy: "6+ emojis"
+};
 
 /**
- * Builds the system prompt for AI content generation
- * Incorporates natural writing rules from natural-content-generation-guide.md
+ * Tone descriptions - concise for token efficiency
+ */
+const TONE_MAP: Record<string, string> = {
+  professional: "Expert but approachable",
+  casual: "Friendly, personal stories",
+  inspirational: "Real struggles + lessons",
+  educational: "Practical takeaways",
+  storytelling: "Narrative with tension"
+};
+
+/**
+ * Format guidance - concise
+ */
+const FORMAT_MAP: Record<string, string> = {
+  story: "Personal story with lesson",
+  listicle: "Points with context, not generic",
+  question: "Thought-provoking question explored",
+  opinion: "Hot take with reasoning",
+  'how-to': "Practical guide from experience",
+  announcement: "News + why it matters"
+};
+
+/**
+ * Hook style guidance - concise
+ */
+const HOOK_MAP: Record<string, string> = {
+  question: "Provocative/relatable question",
+  statistic: "Surprising number/stat",
+  'bold-statement': "Strong opinion/contrarian view",
+  'personal-story': "Start with 'I' + specific moment",
+  contrarian: "Challenge common assumption"
+};
+
+/**
+ * Length guidance
+ */
+const LENGTH_MAP: Record<string, string> = {
+  short: "100-200 words",
+  medium: "200-400 words",
+  long: "400-600 words"
+};
+
+/**
+ * Builds the system prompt using hybrid JSON format
  */
 export function buildSystemPrompt(profile?: ProfileAnalysis | null): string {
-  const bannedWordsShort = BANNED_WORDS.slice(0, 20).join(', ');
+  let prompt = `CONFIG: ${JSON.stringify(POST_CONFIG)}`;
 
-  return `You are writing LinkedIn posts AS the user, not for them.
-Write like a real professional sharing genuine insights.
-Your goal is to create authentic, engaging content that sounds human-written.
+  if (profile) {
+    const persona: Record<string, unknown> = {};
 
-CRITICAL RULES - YOU MUST FOLLOW THESE:
+    if (profile.position) persona.role = profile.position;
+    if (profile.company) persona.company = profile.company;
+    if (profile.industry) persona.industry = profile.industry;
+    if (profile.yearsExperience) persona.years = profile.yearsExperience;
+    if (profile.expertise?.length) persona.expertise = profile.expertise;
+    if (profile.writingStyle) persona.style = profile.writingStyle;
+    if (profile.topicsOfInterest?.length) persona.topics = profile.topicsOfInterest;
+    if (profile.targetAudience) persona.audience = profile.targetAudience;
+    if (profile.emojiPreference) persona.emoji = profile.emojiPreference;
+    if (profile.contentStrengths?.length) persona.strengths = profile.contentStrengths;
+    if (profile.personalValues?.length) persona.values = profile.personalValues;
 
-1. NEVER use these words (they trigger AI detection):
-   ${bannedWordsShort}
+    prompt += `\nPERSONA: ${JSON.stringify(persona)}`;
+    prompt += `\nWrite in THEIR voice with THEIR expertise.`;
+  }
 
-2. NEVER use em-dashes (—). Use commas, periods, or regular hyphens instead.
-
-3. NEVER start posts with:
-   - "In today's world..."
-   - "Here's why..." or "Here's how..."
-   - "I wanted to share..."
-   - Generic numbered lists without context
-
-4. Writing style requirements:
-   - Write conversationally, like you're talking to a colleague
-   - Use contractions naturally (I'm, you're, it's, don't, can't)
-   - Vary sentence length - mix short punchy sentences with longer ones
-   - Start some sentences with "And" or "But" (natural speech pattern)
-   - Use first person ("I") and speak directly to reader ("you")
-   - Include occasional imperfections that humans make
-   - Avoid corporate jargon and buzzwords
-
-5. Formatting for LinkedIn:
-   - Use line breaks liberally (LinkedIn rewards whitespace)
-   - Keep paragraphs to 1-3 sentences max
-   - Start with a hook that stops the scroll
-   - End with engagement prompt or call-to-action
-   - Limit hashtags to 3-5, placed at the end
-   - Use emojis sparingly (0-3 max) if at all
-
-6. Content structure:
-   - Hook (first 1-2 lines visible before "see more")
-   - Body (the main content, easy to skim)
-   - Takeaway or insight
-   - Call-to-action or question
-
-7. What makes content feel human:
-   - Personal anecdotes and specific details
-   - Opinions and perspectives (not just facts)
-   - Vulnerability and admitting mistakes
-   - Specific numbers ("3 years ago" not "some time ago")
-   - Questions to the reader
-   - Incomplete thoughts or parenthetical asides
-
-${profile ? buildProfileContext(profile) : ''}
-
-Remember: The goal is authentic engagement, not virality. Write like a real person sharing genuine insights.`;
+  return prompt;
 }
 
 /**
- * Builds the user prompt based on generation parameters
+ * Builds the user prompt using structured format
  */
 export function buildUserPrompt(params: GenerationParams): string {
-  const parts: string[] = [];
-
-  parts.push('Generate a LinkedIn post with these specifications:');
-
-  if (params.topic) {
-    parts.push(`\nTOPIC: ${params.topic}`);
-  }
-
-  if (params.keyPoints?.length) {
-    parts.push(`\nKEY POINTS TO INCLUDE:\n${params.keyPoints.map(p => `- ${p}`).join('\n')}`);
-  }
-
-  if (params.tone) {
-    const toneDescriptions: Record<string, string> = {
-      professional: 'Clear and direct, expert but approachable, share insights not platitudes',
-      casual: 'Friendly and relatable, conversational language, personal stories prominent',
-      inspirational: 'Authentic vulnerability, real struggles and lessons, specific examples, avoid cliches',
-      educational: 'Teaching something valuable, step-by-step when helpful, practical takeaways',
-      storytelling: 'Narrative-driven, build tension and resolution, emotional connection',
-    };
-    parts.push(`\nTONE: ${params.tone} - ${toneDescriptions[params.tone] || ''}`);
-  }
-
-  if (params.format) {
-    const formatGuidance: Record<string, string> = {
-      story: 'Tell a personal story with a clear lesson or insight',
-      listicle: 'Share key points but add personal context, not a generic list',
-      question: 'Start with a thought-provoking question, explore it',
-      opinion: 'Share a clear opinion or hot take with reasoning',
-      'how-to': 'Practical guide based on your experience',
-      announcement: 'Share news with personal perspective on why it matters',
-    };
-    parts.push(`\nFORMAT: ${params.format} - ${formatGuidance[params.format] || ''}`);
-  }
-
-  if (params.hookStyle) {
-    const hookGuidance: Record<string, string> = {
-      question: 'Start with a provocative or relatable question',
-      statistic: 'Open with a specific, surprising number or stat',
-      'bold-statement': 'Lead with a strong opinion or contrarian view',
-      'personal-story': 'Begin with "I" and a specific moment or experience',
-      contrarian: 'Challenge a common assumption or popular belief',
-    };
-    parts.push(`\nHOOK STYLE: ${hookGuidance[params.hookStyle] || params.hookStyle}`);
-  }
-
-  if (params.targetAudience) {
-    parts.push(`\nTARGET AUDIENCE: ${params.targetAudience}`);
-  }
-
-  // Length guidance
-  const lengthGuidance: Record<string, string> = {
-    short: '100-200 words - punchy and impactful',
-    medium: '200-400 words - room for story and insight',
-    long: '400-600 words - detailed narrative or comprehensive guide',
+  const request: Record<string, unknown> = {
+    topic: params.topic
   };
-  parts.push(`\nLENGTH: ${lengthGuidance[params.length || 'medium']}`);
 
+  if (params.keyPoints?.length) request.keyPoints = params.keyPoints;
+  if (params.tone) request.tone = params.tone;
+  if (params.format) request.format = params.format;
+  if (params.hookStyle) request.hook = params.hookStyle;
+  if (params.targetAudience) request.audience = params.targetAudience;
+  if (params.length) request.length = params.length;
+  if (params.emojiLevel) request.emoji = params.emojiLevel;
+  if (params.includeCallToAction) request.cta = true;
+
+  let prompt = `REQUEST: ${JSON.stringify(request)}`;
+
+  // Add tone description
+  if (params.tone && TONE_MAP[params.tone]) {
+    prompt += `\nTONE: ${TONE_MAP[params.tone]}`;
+  }
+
+  // Add format guidance
+  if (params.format && FORMAT_MAP[params.format]) {
+    prompt += `\nFORMAT: ${FORMAT_MAP[params.format]}`;
+  }
+
+  // Add hook guidance
+  if (params.hookStyle && HOOK_MAP[params.hookStyle]) {
+    prompt += `\nHOOK: ${HOOK_MAP[params.hookStyle]}`;
+  }
+
+  // Add length
+  prompt += `\nLENGTH: ${LENGTH_MAP[params.length || 'medium']}`;
+
+  // Add emoji
+  prompt += `\nEMOJI: ${EMOJI_MAP[params.emojiLevel || 'none']}`;
+
+  // CTA instruction
   if (params.includeCallToAction) {
-    parts.push('\nEND with an engaging question that invites readers to share their thoughts, experiences, or opinions. The question should be open-ended and directly related to the topic. This is NOT optional - the post MUST end with a question.');
+    prompt += `\nEND: Question that invites discussion (required)`;
   }
 
-  // Add emoji level instruction
-  if (params.emojiLevel) {
-    parts.push(`\nEMOJI USAGE: ${EMOJI_INSTRUCTIONS[params.emojiLevel]}`);
-  } else {
-    parts.push(`\nEMOJI USAGE: ${EMOJI_INSTRUCTIONS.none}`);
-  }
+  prompt += `\nOUTPUT: LinkedIn post only, no explanations.`;
 
-  parts.push(`\n
-IMPORTANT REMINDERS:
-- NO em-dashes (—)
-- NO "delve", "leverage", "game-changer", "transform", etc.
-- Start STRONG - the first line must hook
-- Use LINE BREAKS between thoughts
-- Sound HUMAN - conversational, specific, opinionated
-- End with engagement - question or clear CTA`);
-
-  return parts.join('');
+  return prompt;
 }
 
 /**
  * Builds a prompt to improve existing content
  */
 export function buildEnhancePrompt(existingContent: string, instructions: string): string {
-  return `Improve this LinkedIn post based on the following instructions.
+  return `IMPROVE:
+"${existingContent}"
 
-CURRENT POST:
-${existingContent}
+INSTRUCTIONS: ${instructions}
 
-IMPROVEMENT INSTRUCTIONS:
-${instructions}
+RULES: ${JSON.stringify(POST_CONFIG.rules.never)}
+BANNED: ${POST_CONFIG.rules.banned_words.join(', ')}
 
-Maintain the core message but enhance based on instructions.
-
-RULES:
-- NO em-dashes (—)
-- NO buzzwords (delve, leverage, game-changer, transform)
-- Keep it conversational and human
-- Use line breaks for readability
-- Vary sentence length`;
+OUTPUT: Enhanced post only.`;
 }

@@ -100,6 +100,29 @@ export async function verifyAuth(): Promise<AuthVerifyResult> {
 }
 
 /**
+ * Verify authentication with a provided token (before storing)
+ */
+export async function verifyAuthWithToken(token: string): Promise<AuthVerifyResult> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/extension/auth`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return { authenticated: false };
+    }
+
+    return response.json();
+  } catch {
+    return { authenticated: false };
+  }
+}
+
+/**
  * Refresh the extension token
  */
 export interface RefreshTokenResult {

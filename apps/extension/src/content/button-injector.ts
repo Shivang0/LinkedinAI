@@ -3,25 +3,38 @@ import type { LinkedInPostContext } from '@/shared/types/messages';
 import { showCommentModal } from './comment-modal';
 
 /**
- * Inject the AI comment button into a post's social actions bar
+ * Inject the AI comment button into a post's social actions bar - BETWEEN Like and Comment
  */
 export function injectCommentButton(postElement: HTMLElement, postData: LinkedInPostContext): void {
-  // Find the social actions bar
-  const actionsBar = postElement.querySelector(LINKEDIN_SELECTORS.SOCIAL_ACTIONS);
-  if (!actionsBar) {
+  // Check if button already exists anywhere in this post
+  if (postElement.querySelector('.linkedin-ai-comment-btn')) {
     return;
   }
 
-  // Check if button already exists
-  if (actionsBar.querySelector('.linkedin-ai-comment-btn')) {
+  // Find the Comment button first - we'll insert our button before it
+  const commentBtn = postElement.querySelector('button[aria-label*="Comment"], button[aria-label*="comment"]') as HTMLElement;
+
+  if (!commentBtn) {
+    console.log('[LinkedIn AI] Could not find Comment button for post:', postData.urn);
+    return;
+  }
+
+  // Get the parent that contains all the action buttons
+  // Usually it's the direct parent or grandparent of the comment button
+  const buttonContainer = commentBtn.parentElement;
+
+  if (!buttonContainer) {
+    console.log('[LinkedIn AI] Could not find button container for post:', postData.urn);
     return;
   }
 
   // Create the AI comment button
   const button = createAIButton(postData);
 
-  // Insert the button into the actions bar
-  actionsBar.appendChild(button);
+  // Insert the AI button BEFORE the Comment button (so it appears between Like and Comment)
+  buttonContainer.insertBefore(button, commentBtn);
+
+  console.log('[LinkedIn AI] Injected AI button for post:', postData.author);
 }
 
 /**
