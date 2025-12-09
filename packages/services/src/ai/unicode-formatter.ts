@@ -31,41 +31,92 @@ function toBold(text: string): string {
 }
 
 /**
+ * Detect the first bullet type used in the content
+ */
+function detectBulletType(content: string): string {
+  const bulletPatterns = [
+    { pattern: /^[\s]*→\s/m, bullet: '→' },
+    { pattern: /^[\s]*➤\s/m, bullet: '➤' },
+    { pattern: /^[\s]*•\s/m, bullet: '•' },
+    { pattern: /^[\s]*✓\s/m, bullet: '✓' },
+    { pattern: /^[\s]*✔\s/m, bullet: '✔' },
+    { pattern: /^[\s]*▸\s/m, bullet: '▸' },
+    { pattern: /^[\s]*►\s/m, bullet: '►' },
+    { pattern: /^[\s]*-\s/m, bullet: '-' },
+    { pattern: /^[\s]*\*\s/m, bullet: '*' },
+  ];
+
+  for (const { pattern, bullet } of bulletPatterns) {
+    if (pattern.test(content)) {
+      return bullet;
+    }
+  }
+
+  return '→'; // Default bullet
+}
+
+/**
  * Apply auto-formatting to AI-generated content
  * - Bolds the first line (hook)
  * - Converts **text** markers to bold Unicode
- * - Enhances bullet points with styled characters
+ * - Maintains consistent bullet style throughout
+ * - Cleans up any leftover formatting markers
  */
 export function applyAutoFormat(content: string): string {
   if (!content) return content;
 
+  // First, detect the primary bullet type used
+  const primaryBullet = detectBulletType(content);
+
+  // Map all bullet types to the primary one for consistency
+  const bulletMap: Record<string, string> = {
+    '-': primaryBullet,
+    '*': primaryBullet,
+    '→': primaryBullet,
+    '➤': primaryBullet,
+    '•': primaryBullet,
+    '✓': primaryBullet,
+    '✔': primaryBullet,
+    '▸': primaryBullet,
+    '►': primaryBullet,
+  };
+
   const lines = content.split('\n');
   const formattedLines: string[] = [];
+  let firstNonEmptyLineProcessed = false;
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
 
     // Bold the first non-empty line (the hook)
-    if (i === 0 || (formattedLines.every(l => l.trim() === '') && line.trim() !== '')) {
-      if (line.trim() !== '') {
+    if (!firstNonEmptyLineProcessed && line.trim() !== '') {
+      // Don't bold if it starts with a bullet or hashtag
+      if (!/^[\s]*[-*→➤•✓✔▸►#]/.test(line)) {
         line = toBold(line);
-        formattedLines.push(line);
-        continue;
       }
+      firstNonEmptyLineProcessed = true;
+      formattedLines.push(line);
+      continue;
     }
 
     // Convert **text** markers to bold Unicode
     line = line.replace(/\*\*([^*]+)\*\*/g, (_, text) => toBold(text));
 
-    // Enhance bullet points with styled characters
-    // Convert common bullet patterns to styled Unicode bullets
-    line = line
-      .replace(/^(\s*)- /, '$1→ ')
-      .replace(/^(\s*)\* /, '$1• ')
-      .replace(/^(\s*)> /, '$1➤ ');
+    // Normalize all bullet types to the primary bullet for consistency
+    line = line.replace(/^(\s*)([-*→➤•✓✔▸►])\s+/, (match, whitespace, bullet) => {
+      const normalizedBullet = bulletMap[bullet] || primaryBullet;
+      return `${whitespace}${normalizedBullet} `;
+    });
 
     formattedLines.push(line);
   }
 
-  return formattedLines.join('\n');
+  // Final cleanup: remove any leftover ** markers that weren't matched
+  let result = formattedLines.join('\n');
+  result = result.replace(/\*\*/g, '');
+
+  // Clean up any double spaces
+  result = result.replace(/  +/g, ' ');
+
+  return result;
 }
