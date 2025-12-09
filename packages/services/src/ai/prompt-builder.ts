@@ -7,27 +7,32 @@ import { BANNED_WORDS } from './content-rules';
  */
 const POST_CONFIG = {
   role: "LinkedIn post writer (AS user, not FOR user)",
-  goal: "Authentic, human-sounding content",
+  goal: "Authentic, human-sounding, skimmable content",
   rules: {
     never: [
       "em-dashes (—)",
+      "Numbered lists (1. 2. 3.) - use symbol bullets instead",
       "Start with: 'In today's world', 'Here's why', 'I wanted to share'",
-      "Generic numbered lists without context",
-      "Corporate jargon and buzzwords"
+      "Same sentence starter more than twice in a row",
+      "Corporate jargon and buzzwords",
+      "Long paragraphs (3+ sentences without break)"
     ],
     always: [
+      "Use symbol bullets (→, •, ✓) for lists - NEVER numbered lists",
+      "Blank lines between paragraphs (mobile readability)",
       "Contractions (I'm, you're, don't, can't)",
-      "Varied sentence length (mix short punchy + longer)",
+      "Varied sentence length (mix 5-word punchy + 15-word detailed)",
       "First person + direct 'you'",
-      "Line breaks between thoughts",
       "Personal anecdotes with specifics",
-      "Opinions, not just facts"
+      "Opinions, not just facts",
+      "Short paragraphs (1-2 sentences ideal)"
     ],
     banned_words: BANNED_WORDS.slice(0, 15)
   },
-  structure: ["Hook (scroll-stopper)", "Body (skimmable)", "Takeaway", "CTA/Question"],
+  structure: "Flexible - vary format based on content type",
   format: {
-    paragraphs: "1-3 sentences max",
+    paragraphs: "1-2 sentences max, blank line between each",
+    bullets: "→ or • or ✓ (NEVER numbered lists)",
     hashtags: "3-5 at end",
     emojis: "0-3 max unless specified"
   }
@@ -58,12 +63,12 @@ const TONE_MAP: Record<string, string> = {
  * Format guidance - concise
  */
 const FORMAT_MAP: Record<string, string> = {
-  story: "Personal story with lesson",
-  listicle: "Points with context, not generic",
-  question: "Thought-provoking question explored",
-  opinion: "Hot take with reasoning",
-  'how-to': "Practical guide from experience",
-  announcement: "News + why it matters"
+  story: "Personal story with dramatic pacing. Short paragraphs. Line breaks for tension. Build to a revelation.",
+  listicle: "Key points with → or • bullets. Each bullet 1-2 lines max. Add personal context before the list.",
+  question: "Thought-provoking question explored with YOUR take. End with inviting others to share.",
+  opinion: "Hot take with clear reasoning. Short punchy statements. One idea per paragraph.",
+  'how-to': "Practical steps with ✓ bullets. Start each bullet with action verb. From real experience.",
+  announcement: "News + why it matters + what's next. Keep excitement but stay grounded."
 };
 
 /**
@@ -157,6 +162,28 @@ export function buildUserPrompt(params: GenerationParams): string {
   // CTA instruction
   if (params.includeCallToAction) {
     prompt += `\nEND: Question that invites discussion (required)`;
+  }
+
+  // Add formatting instruction for listicle/how-to formats
+  if (params.format === 'listicle' || params.format === 'how-to') {
+    prompt += `\nFORMATTING: Use → or • or ✓ for bullets. NEVER use numbered lists (1. 2. 3.). Add blank line before and after bullet section.`;
+  }
+
+  // Add readability instructions for LinkedIn optimization
+  prompt += `\nREADABILITY (critical for LinkedIn engagement):
+→ Keep paragraphs to 1-2 sentences MAX
+→ Add blank lines between every thought
+→ Vary sentence length (mix 5-word punchy with 15-word detailed)
+→ Start sentences differently (avoid I...I...I pattern)
+→ Use short first line as hook (under 10 words ideal)`;
+
+  // Add auto-format instructions
+  if (params.autoFormat) {
+    prompt += `\nAUTO-FORMAT (special Unicode styling for LinkedIn):
+→ First line must be the hook - it will be bolded
+→ Use these exact bullet symbols: → ✓ • ➤
+→ Key phrases in bullets should be marked with **double asterisks**
+→ One strong closing statement at the end`;
   }
 
   prompt += `\nOUTPUT: LinkedIn post only, no explanations.`;

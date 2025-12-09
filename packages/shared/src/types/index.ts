@@ -130,6 +130,7 @@ export interface GenerationParams {
   targetAudience?: string;
   length?: 'short' | 'medium' | 'long';
   emojiLevel?: EmojiLevel;
+  autoFormat?: boolean;
 }
 
 export interface GeneratedContent {

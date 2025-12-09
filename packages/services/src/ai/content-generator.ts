@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import type { GenerationParams, ProfileAnalysis, GeneratedContent } from '@linkedin-ai/shared';
 import { buildSystemPrompt, buildUserPrompt, buildEnhancePrompt } from './prompt-builder';
 import { validateAndCleanContent, type ContentValidationResult } from './content-rules';
+import { applyAutoFormat } from './unicode-formatter';
 
 export interface ContentGeneratorConfig {
   apiKey: string;
@@ -62,11 +63,17 @@ export class ContentGenerator {
         frequency_penalty: 0.3, // Reduce repetition
       });
 
-      const content = response.choices[0]?.message?.content || '';
+      let content = response.choices[0]?.message?.content || '';
       const validation = validateAndCleanContent(content);
 
+      // Apply Unicode auto-formatting if enabled
+      let finalContent = validation.cleaned;
+      if (params.autoFormat) {
+        finalContent = applyAutoFormat(validation.cleaned);
+      }
+
       lastResult = {
-        content: validation.cleaned,
+        content: finalContent,
         validation,
         metadata: {
           model: this.model,

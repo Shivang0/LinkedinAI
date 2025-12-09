@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { X, Calendar, Clock, Sparkles, Save, Send, BarChart3 } from 'lucide-react';
+import { X, Calendar, Clock, Sparkles, Save, Send, BarChart3, Type } from 'lucide-react';
 import { EmojiPicker } from '@/components/emoji-picker';
 import { MediaUpload, type MediaFile } from '@/components/media-upload';
 import { PollPreview } from '@/components/poll-preview';
+import { FormatToolbar } from '@/components/format-toolbar';
+import { BulletPicker } from '@/components/bullet-picker';
 
 // Schedule Modal Component
 function ScheduleModal({
@@ -168,6 +170,8 @@ export default function ComposePage() {
   // New state for enhanced compose features
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [showPoll, setShowPoll] = useState(false);
+  const [autoFormatAI, setAutoFormatAI] = useState(false);
+  const [showFormatToolbar, setShowFormatToolbar] = useState(true);
 
   // Load draft data from API when editing
   useEffect(() => {
@@ -214,6 +218,7 @@ export default function ComposePage() {
             : undefined,
           includeCallToAction,
           emojiLevel,
+          autoFormat: autoFormatAI,
         }),
       });
 
@@ -343,6 +348,24 @@ export default function ComposePage() {
 
   const handleMediaRemove = (id: string) => {
     setMediaFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  // Handle bullet selection - insert at cursor position
+  const handleBulletSelect = (bullet: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.slice(0, start) + bullet + content.slice(end);
+      setContent(newContent);
+      // Set cursor position after bullet
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + bullet.length;
+        textarea.focus();
+      }, 0);
+    } else {
+      setContent(content + bullet);
+    }
   };
 
   return (
@@ -508,6 +531,20 @@ export default function ComposePage() {
                   Control how many emojis appear in the generated post
                 </p>
               </div>
+
+              {/* Auto-Format AI Output */}
+              <div className="flex items-center gap-3 pt-4 border-t-2 border-[#3a4466]">
+                <input
+                  type="checkbox"
+                  id="autoFormat"
+                  checked={autoFormatAI}
+                  onChange={(e) => setAutoFormatAI(e.target.checked)}
+                  className="w-5 h-5 bg-[#1a1c2c] border-2 border-[#f4f4f4] accent-[#0099db]"
+                />
+                <label htmlFor="autoFormat" className="font-retro text-lg text-[#f4f4f4]">
+                  Auto-format AI output (bold headers, styled bullets)
+                </label>
+              </div>
             </div>
 
             {/* Generate Button */}
@@ -542,6 +579,13 @@ export default function ComposePage() {
               </div>
             </div>
 
+            {/* Format Toolbar */}
+            <FormatToolbar
+              textareaRef={textareaRef}
+              content={content}
+              onContentChange={setContent}
+            />
+
             <textarea
               ref={textareaRef}
               value={content}
@@ -560,6 +604,7 @@ export default function ComposePage() {
             {/* Compose Toolbar */}
             <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t-2 border-[#3a4466]">
               <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+              <BulletPicker onBulletSelect={handleBulletSelect} />
               <MediaUpload
                 mediaFiles={mediaFiles}
                 onMediaAdd={handleMediaAdd}

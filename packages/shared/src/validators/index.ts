@@ -17,6 +17,7 @@ export const generationParamsSchema = z.object({
   targetAudience: z.string().optional(),
   length: z.enum(['short', 'medium', 'long']).optional(),
   emojiLevel: emojiLevelSchema.optional().default('none'),
+  autoFormat: z.boolean().optional().default(false),
 });
 
 export type GenerationParamsInput = z.infer<typeof generationParamsSchema>;
