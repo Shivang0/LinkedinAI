@@ -142,7 +142,7 @@ export async function DELETE(
       );
     }
 
-    // Delete the scheduled post and update the post status
+    // Delete the scheduled post, update the post status, and create a draft
     await prisma.$transaction([
       prisma.scheduledPost.delete({
         where: { id: params.id },
@@ -151,9 +151,17 @@ export async function DELETE(
         where: { id: existingPost.postId },
         data: { status: 'draft' },
       }),
+      // Create a draft so the content appears in the drafts page
+      prisma.draft.create({
+        data: {
+          userId: session.userId,
+          title: `Cancelled: ${new Date(existingPost.scheduledFor).toLocaleDateString()}`,
+          content: existingPost.post.content,
+        },
+      }),
     ]);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Post moved to drafts' });
   } catch (error) {
     console.error('Cancel scheduled post error:', error);
     return NextResponse.json(
