@@ -152,6 +152,9 @@ export default function ComposePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [editScheduledPostId, setEditScheduledPostId] = useState<string | null>(null);
+  const [editPostId, setEditPostId] = useState<string | null>(null);
+  const [originalScheduledFor, setOriginalScheduledFor] = useState<string | null>(null);
   const [topic, setTopic] = useState('');
   const [tone, setTone] = useState('professional');
   const [format, setFormat] = useState('story');
@@ -166,6 +169,7 @@ export default function ComposePage() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
   // New state for enhanced compose features
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
@@ -173,11 +177,30 @@ export default function ComposePage() {
   const [autoFormatAI, setAutoFormatAI] = useState(false);
   const [showFormatToolbar, setShowFormatToolbar] = useState(true);
 
-  // Load draft data from API when editing
+  // Load draft or scheduled post data from API when editing
   useEffect(() => {
     const draftIdParam = searchParams.get('draftId');
+    const editParam = searchParams.get('edit');
 
-    if (draftIdParam) {
+    if (editParam) {
+      // Loading a scheduled post for editing
+      setIsLoadingEdit(true);
+      setEditScheduledPostId(editParam);
+      fetch(`/api/posts/scheduled/${editParam}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.scheduledPost) {
+            setContent(data.scheduledPost.post.content || '');
+            setEditPostId(data.scheduledPost.post.id);
+            setOriginalScheduledFor(data.scheduledPost.scheduledFor);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load scheduled post:', err);
+          setError('Failed to load scheduled post');
+        })
+        .finally(() => setIsLoadingEdit(false));
+    } else if (draftIdParam) {
       setDraftId(draftIdParam);
       // Fetch draft content from API
       fetch(`/api/drafts/${draftIdParam}`)
@@ -295,20 +318,39 @@ export default function ComposePage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/posts/scheduled', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content,
-          scheduledFor: scheduledFor.toISOString(),
-          draftId: draftId || undefined,
-        }),
-      });
+      if (editScheduledPostId && editPostId) {
+        // Update existing scheduled post
+        const response = await fetch(`/api/posts/scheduled/${editScheduledPostId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content,
+            scheduledFor: scheduledFor.toISOString(),
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to schedule post');
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update scheduled post');
+        }
+      } else {
+        // Create new scheduled post
+        const response = await fetch('/api/posts/scheduled', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content,
+            scheduledFor: scheduledFor.toISOString(),
+            draftId: draftId || undefined,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to schedule post');
+        }
       }
 
       setShowScheduleModal(false);

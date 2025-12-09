@@ -144,12 +144,12 @@ export default function BillingPage() {
               <div className="flex items-center justify-between p-4 bg-[#0099db]/10 border-2 border-[#0099db]">
                 <div>
                   <p className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">
-                    {subscription.plan === 'monthly'
+                    {subscription.plan.includes('monthly')
                       ? 'MONTHLY PLAN'
                       : 'ANNUAL PLAN'}
                   </p>
                   <p className="font-retro text-xl text-[#94a3b8]">
-                    {subscription.plan === 'monthly'
+                    {subscription.plan.includes('monthly')
                       ? '$19 per month'
                       : '$190 per year (save $38)'}
                   </p>

@@ -33,7 +33,7 @@ export async function GET(
   return NextResponse.json({ scheduledPost });
 }
 
-// PUT /api/posts/scheduled/[id] - Update scheduled time
+// PUT /api/posts/scheduled/[id] - Update scheduled post (time and/or content)
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
@@ -46,7 +46,7 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const { scheduledFor } = body;
+    const { scheduledFor, content } = body;
 
     // Verify the scheduled post belongs to the user
     const existingPost = await prisma.scheduledPost.findFirst({
@@ -54,6 +54,9 @@ export async function PUT(
         id: params.id,
         post: { userId: session.userId },
         jobStatus: 'pending',
+      },
+      include: {
+        post: true,
       },
     });
 
@@ -72,21 +75,33 @@ export async function PUT(
       );
     }
 
-    const scheduledPost = await prisma.scheduledPost.update({
-      where: { id: params.id },
-      data: { scheduledFor: scheduledDate },
-      include: {
-        post: {
-          select: {
-            id: true,
-            content: true,
-            status: true,
+    // Update both the scheduled post time and the post content
+    const [updatedScheduledPost] = await prisma.$transaction([
+      prisma.scheduledPost.update({
+        where: { id: params.id },
+        data: { scheduledFor: scheduledDate },
+        include: {
+          post: {
+            select: {
+              id: true,
+              content: true,
+              status: true,
+            },
           },
         },
-      },
-    });
+      }),
+      // Update the post content if provided
+      ...(content !== undefined
+        ? [
+            prisma.post.update({
+              where: { id: existingPost.postId },
+              data: { content },
+            }),
+          ]
+        : []),
+    ]);
 
-    return NextResponse.json({ scheduledPost });
+    return NextResponse.json({ scheduledPost: updatedScheduledPost });
   } catch (error) {
     console.error('Update scheduled post error:', error);
     return NextResponse.json(

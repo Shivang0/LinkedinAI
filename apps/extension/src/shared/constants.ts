@@ -12,48 +12,38 @@ export const AUTH_STORAGE_KEY = 'linkedin_ai_auth';
 export const TOKEN_REFRESH_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours before expiry
 
 // LinkedIn selectors - Updated for 2024/2025 LinkedIn DOM
+// Arrays for fallback iteration - try each selector until content is found
 export const LINKEDIN_SELECTORS = {
-  // Post container - comprehensive selectors for all post types
-  POST_CONTAINER: [
-    '[data-urn^="urn:li:activity"]',
-    '[data-id^="urn:li:activity"]',
-    '[data-urn^="urn:li:ugcPost"]',
-    '[data-urn^="urn:li:share"]',
-    '.feed-shared-update-v2',
-    '.occludable-update',
-    '.feed-shared-update-v2__content',
-    'div[data-id*="urn:li"]',
-    '.scaffold-finite-scroll__content > div',
-    '.feed-shared-card',
-    'article[data-urn]',
-  ].join(', '),
+  // Post container - comprehensive selectors for all post types (joined for querySelector)
+  POST_CONTAINER: '[data-urn^="urn:li:activity"], [data-id^="urn:li:activity"], [data-urn^="urn:li:ugcPost"], [data-urn^="urn:li:share"], .feed-shared-update-v2, .occludable-update, .feed-shared-update-v2__content, div[data-id*="urn:li"], .scaffold-finite-scroll__content > div, .feed-shared-card, article[data-urn]',
 
-  // Social actions bar (Like, Comment, Repost, Send) - multiple fallbacks
-  SOCIAL_ACTIONS: [
-    '.feed-shared-social-actions',
-    '.social-details-social-actions',
-    '[class*="social-actions"]',
-    '.feed-shared-social-action-bar',
-    '.social-actions-button',
-    'div[class*="social-details"]',
-  ].join(', '),
+  // Social actions bar (joined for querySelector)
+  SOCIAL_ACTIONS: '.feed-shared-social-actions, .social-details-social-actions, [class*="social-actions"], .feed-shared-social-action-bar, .social-actions-button, div[class*="social-details"]',
 
   // Comment button to insert after
   COMMENT_BUTTON: '[data-control-name="comment"], button[aria-label*="Comment"], button[aria-label*="comment"], button[class*="comment"]',
 
-  // Post content - multiple fallbacks
+  // Post content - ARRAY for fallback iteration (most reliable first)
   POST_CONTENT: [
-    '.feed-shared-update-v2__description',
+    // Primary selectors - LinkedIn 2024/2025
+    '.feed-shared-update-v2__description-wrapper',
     '.feed-shared-text',
+    '.feed-shared-update-v2__description',
     '.feed-shared-inline-show-more-text',
+    '.feed-shared-text__text-view',
     '.update-components-text',
+    // Secondary fallbacks
+    '.feed-shared-update-v2__commentary',
+    '.break-words span[dir="ltr"]',
     '[data-test-id="main-feed-activity-card__commentary"]',
+    '.attributed-text-segment-list__content',
+    '.feed-shared-text-view',
+    // Last resort
     '.break-words',
     'span[dir="ltr"]',
-    '.feed-shared-text-view',
-  ].join(', '),
+  ],
 
-  // Author info - multiple fallbacks
+  // Author name - ARRAY for fallback iteration
   AUTHOR_NAME: [
     '.feed-shared-actor__name',
     '.update-components-actor__name',
@@ -62,15 +52,16 @@ export const LINKEDIN_SELECTORS = {
     '[class*="actor-name"]',
     'span.feed-shared-actor__name',
     'a[class*="app-aware-link"] span[dir="ltr"]',
-  ].join(', '),
+  ],
 
+  // Author headline - ARRAY for fallback iteration
   AUTHOR_HEADLINE: [
     '.feed-shared-actor__description',
     '.update-components-actor__description',
     '.feed-shared-actor__sub-description',
     '[class*="actor__description"]',
     'span.feed-shared-actor__description',
-  ].join(', '),
+  ],
 
   // Comment box for inserting generated comments
   COMMENT_BOX: '.comments-comment-texteditor__contenteditable, [data-placeholder*="Add a comment"], .ql-editor, [contenteditable="true"][role="textbox"]',

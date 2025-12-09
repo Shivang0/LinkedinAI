@@ -3,25 +3,77 @@ import type { LinkedInPostContext } from '@/shared/types/messages';
 
 /**
  * Extract post data from a LinkedIn post element
+ * Uses fallback iteration - tries each selector until content is found
  */
 export function extractPostData(postElement: HTMLElement, urn: string): LinkedInPostContext | null {
   try {
-    // Extract post content
-    const contentElement = postElement.querySelector(LINKEDIN_SELECTORS.POST_CONTENT);
-    const content = cleanPostContent(contentElement?.textContent || '');
+    // First, expand "see more" if present to get full content
+    const seeMoreSelectors = [
+      'button.see-more',
+      '.feed-shared-inline-show-more-text__see-more-less-toggle',
+      '[data-tracking-control-name*="see_more"]',
+      'button[aria-label*="see more"]',
+    ];
+
+    for (const selector of seeMoreSelectors) {
+      const seeMoreBtn = postElement.querySelector(selector) as HTMLElement;
+      if (seeMoreBtn && seeMoreBtn.textContent?.toLowerCase().includes('more')) {
+        try {
+          seeMoreBtn.click();
+          console.log('[LinkedIn AI] Clicked "see more" to expand content');
+        } catch (e) {
+          // Ignore click errors
+        }
+        break;
+      }
+    }
+
+    // Extract post content with fallback iteration - try innerText first
+    let content = '';
+    let foundSelector = '';
+
+    for (const selector of LINKEDIN_SELECTORS.POST_CONTENT) {
+      const element = postElement.querySelector(selector) as HTMLElement;
+      if (element) {
+        // Try innerText first (cleaner, no hidden text), fallback to textContent
+        const text = element.innerText || element.textContent || '';
+        if (text.trim().length > 20) {  // Minimum 20 chars for valid content
+          content = cleanPostContent(text);
+          foundSelector = selector;
+          break;
+        }
+      }
+    }
 
     // Skip posts without content
-    if (!content || content.length < 10) {
+    if (!content || content.length < 20) {
+      console.warn('[LinkedIn AI] Content too short or empty for post:', urn, '- length:', content.length);
       return null;
     }
 
-    // Extract author name
-    const authorElement = postElement.querySelector(LINKEDIN_SELECTORS.AUTHOR_NAME);
-    const author = authorElement?.textContent?.trim() || 'Unknown';
+    console.log('[LinkedIn AI] Selector used:', foundSelector);
+    console.log('[LinkedIn AI] Content length:', content.length);
+    console.log('[LinkedIn AI] Content preview:', content.slice(0, 200) + '...');
 
-    // Extract author headline
-    const headlineElement = postElement.querySelector(LINKEDIN_SELECTORS.AUTHOR_HEADLINE);
-    const authorHeadline = headlineElement?.textContent?.trim();
+    // Extract author name with fallback iteration
+    let author = 'Unknown';
+    for (const selector of LINKEDIN_SELECTORS.AUTHOR_NAME) {
+      const element = postElement.querySelector(selector);
+      if (element && element.textContent?.trim()) {
+        author = element.textContent.trim();
+        break;
+      }
+    }
+
+    // Extract author headline with fallback iteration
+    let authorHeadline: string | undefined;
+    for (const selector of LINKEDIN_SELECTORS.AUTHOR_HEADLINE) {
+      const element = postElement.querySelector(selector);
+      if (element && element.textContent?.trim()) {
+        authorHeadline = element.textContent.trim();
+        break;
+      }
+    }
 
     return {
       urn,

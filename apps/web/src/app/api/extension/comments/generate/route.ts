@@ -73,6 +73,12 @@ export async function POST(request: Request) {
     }
 
     const params = result.data;
+
+    // Debug logging
+    console.log('[Comment API] Received postContent length:', params.postContent?.length);
+    console.log('[Comment API] Content preview:', params.postContent?.slice(0, 200));
+    console.log('[Comment API] Author:', params.postAuthor);
+
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const maxTokens = params.length === 'long' ? 200 : params.length === 'medium' ? 150 : 100;
 
@@ -83,7 +89,7 @@ export async function POST(request: Request) {
         { role: 'system', content: getSystemPrompt() },
         { role: 'user', content: buildUserPrompt(params) },
       ],
-      temperature: 0.9,
+      temperature: 0.7,  // Lowered from 0.9 for more focused responses
       max_tokens: maxTokens,
     });
 
@@ -100,7 +106,7 @@ export async function POST(request: Request) {
           { role: 'system', content: getSystemPrompt() },
           { role: 'user', content: buildUserPrompt({ ...params, style }) },
         ],
-        temperature: 0.9,
+        temperature: 0.7,  // Lowered from 0.9 for more focused responses
         max_tokens: maxTokens,
       });
       alternatives.push(cleanComment(altResponse.choices[0]?.message?.content || ''));
@@ -114,7 +120,15 @@ export async function POST(request: Request) {
 }
 
 function getSystemPrompt(): string {
-  return `Write natural LinkedIn comments. Use contractions. NO em-dashes, colons, semicolons. NO AI words: delve, insightful, resonate, leverage, valuable.`;
+  return `You write LinkedIn comments that DIRECTLY respond to specific content in posts.
+
+CRITICAL RULES:
+1. You MUST quote or paraphrase something specific from the post
+2. NEVER write generic comments like "Great insights!" or "Thanks for sharing!"
+3. Your comment should only make sense for THIS specific post
+4. Use natural language with contractions (I'm, you're, don't)
+5. NO em-dashes (—), colons (:), or semicolons (;)
+6. NO AI buzzwords: delve, insightful, resonate, leverage, valuable, journey, impactful`;
 }
 
 function buildUserPrompt(params: {
@@ -130,17 +144,21 @@ function buildUserPrompt(params: {
   const tone = TONES[params.tone] || 'pro';
   const style = STYLES[params.style] || 'add value';
 
-  return `Write ${len} ${tone} LinkedIn comment. ${style}.
+  return `TASK: Write a ${len} ${tone} comment for this LinkedIn post.
 
-Post: ${params.postContent.slice(0, 1500)}
+THE POST:
+"""
+${params.postContent.slice(0, 1500)}
+"""
+Author: ${params.postAuthor}
 
-Rules:
-- Reference specific points from post
-- Use contractions
-- NO em-dashes, colons, semicolons
-- Add value${params.ctaType === 'question' ? '\n- End with question' : ''}
+REQUIREMENTS:
+1. Your FIRST sentence MUST reference a specific point, fact, or idea from the post above
+2. Style: ${style}
+3. Your comment should NOT make sense if applied to any other post - it must be specific to THIS content
+4. Use contractions naturally${params.ctaType === 'question' ? '\n5. End with a question related to what the author said' : ''}
 
-Comment:`;
+Write the comment:`;
 }
 
 function cleanComment(text: string): string {

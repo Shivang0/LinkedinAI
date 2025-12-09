@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Plus, X, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Clock, Edit2 } from 'lucide-react';
 
 interface ScheduledPost {
   id: string;
@@ -333,13 +333,22 @@ export default function CalendarPage() {
                       {scheduledPost.post.content.length > 150 ? '...' : ''}
                     </p>
                     {scheduledPost.jobStatus === 'pending' && (
-                      <button
-                        onClick={() => handleCancelPost(scheduledPost.id)}
-                        className="mt-3 flex items-center gap-1 font-retro text-base text-[#e43b44] hover:text-[#f4f4f4] transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancel
-                      </button>
+                      <div className="mt-3 flex items-center gap-4">
+                        <Link
+                          href={`/compose?edit=${scheduledPost.id}`}
+                          className="flex items-center gap-1 font-retro text-base text-[#0099db] hover:text-[#f4f4f4] transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleCancelPost(scheduledPost.id)}
+                          className="flex items-center gap-1 font-retro text-base text-[#e43b44] hover:text-[#f4f4f4] transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
