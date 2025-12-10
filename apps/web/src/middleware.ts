@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify } from 'jose';
+import { jwtVerify, SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'development-secret-change-me'
 );
+
+const SESSION_DURATION = 60 * 60 * 24 * 30; // 30 days in seconds
+const SESSION_REFRESH_THRESHOLD = 60 * 60 * 24 * 15; // Refresh if less than 15 days remaining
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/compose', '/drafts', '/calendar', '/templates', '/settings'];
@@ -14,6 +17,47 @@ const paidRoutes = ['/dashboard', '/compose', '/drafts', '/calendar', '/template
 
 // Public routes (no auth required)
 const publicRoutes = ['/', '/login', '/callback', '/api/auth', '/api/webhooks'];
+
+/**
+ * Refreshes the session cookie if it's getting close to expiring (sliding session)
+ * This keeps active users logged in indefinitely
+ */
+async function maybeRefreshSession(
+  payload: Record<string, unknown>,
+  response: NextResponse
+): Promise<void> {
+  const exp = payload.exp as number;
+  const now = Math.floor(Date.now() / 1000);
+  const timeRemaining = exp - now;
+
+  // Only refresh if less than 15 days remaining
+  if (timeRemaining >= SESSION_REFRESH_THRESHOLD) {
+    return;
+  }
+
+  // Create a new token with fresh expiration
+  const newToken = await new SignJWT({
+    userId: payload.userId,
+    email: payload.email,
+    name: payload.name,
+    profileImageUrl: payload.profileImageUrl,
+    accountStatus: payload.accountStatus,
+    subscription: payload.subscription,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_DURATION}s`)
+    .sign(JWT_SECRET);
+
+  // Set the refreshed cookie
+  response.cookies.set('session', newToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: SESSION_DURATION,
+    path: '/',
+  });
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -56,7 +100,10 @@ export async function middleware(request: NextRequest) {
     );
 
     if (!isProtectedRoute) {
-      return NextResponse.next();
+      // Still check if session needs refresh for non-protected routes
+      const response = NextResponse.next();
+      await maybeRefreshSession(payload, response);
+      return response;
     }
 
     // Check account status for paid routes
@@ -79,7 +126,10 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    return NextResponse.next();
+    // Refresh session if needed (sliding session)
+    const response = NextResponse.next();
+    await maybeRefreshSession(payload, response);
+    return response;
   } catch {
     // Invalid token, clear and redirect to login
     const response = NextResponse.redirect(new URL('/login', request.url));

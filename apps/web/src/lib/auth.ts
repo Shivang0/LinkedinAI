@@ -6,7 +6,8 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'development-secret-change-me'
 );
 const SESSION_COOKIE = 'session';
-const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
+const SESSION_DURATION = 60 * 60 * 24 * 30; // 30 days in seconds
+const SESSION_REFRESH_THRESHOLD = 60 * 60 * 24 * 15; // Refresh if less than 15 days remaining
 
 export interface JWTPayload {
   userId: string;
@@ -125,3 +126,36 @@ export async function refreshSession(updates: Partial<Session>): Promise<void> {
   const token = await createSessionToken(session);
   await setSessionCookie(token);
 }
+
+/**
+ * Checks if a session token needs to be refreshed (sliding session)
+ * Returns true if the token has less than SESSION_REFRESH_THRESHOLD remaining
+ */
+export function shouldRefreshSession(payload: JWTPayload): boolean {
+  const now = Math.floor(Date.now() / 1000);
+  const timeRemaining = payload.exp - now;
+  return timeRemaining < SESSION_REFRESH_THRESHOLD;
+}
+
+/**
+ * Creates a refreshed token from an existing payload
+ */
+export async function createRefreshedToken(payload: JWTPayload): Promise<string> {
+  const token = await new SignJWT({
+    userId: payload.userId,
+    email: payload.email,
+    name: payload.name,
+    profileImageUrl: payload.profileImageUrl,
+    accountStatus: payload.accountStatus,
+    subscription: payload.subscription,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_DURATION}s`)
+    .sign(JWT_SECRET);
+
+  return token;
+}
+
+// Export constants for middleware
+export { SESSION_DURATION, SESSION_REFRESH_THRESHOLD, SESSION_COOKIE };
