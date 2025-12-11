@@ -167,6 +167,7 @@ export default function ComposePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
@@ -360,6 +361,41 @@ export default function ComposePage() {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsScheduling(false);
+    }
+  };
+
+  const handlePublishNow = async () => {
+    if (!content.trim()) {
+      setError('No content to publish');
+      return;
+    }
+
+    setIsPublishing(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/posts/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          draftId: draftId || undefined,
+          mediaIds: mediaFiles.map((m) => m.id),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to publish post');
+      }
+
+      // Success - redirect to posts page
+      router.push('/posts?published=true');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -682,7 +718,7 @@ export default function ComposePage() {
               <button
                 onClick={handleSaveAsDraft}
                 disabled={!content.trim() || isSaving}
-                className="flex-1 flex items-center justify-center gap-2 font-retro text-lg bg-[#feae34] hover:bg-[#e09a2e] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 font-retro text-lg bg-[#feae34] hover:bg-[#e09a2e] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
                 style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
               >
                 <Save className="w-4 h-4" />
@@ -691,11 +727,20 @@ export default function ComposePage() {
               <button
                 onClick={handleSchedule}
                 disabled={!content.trim() || charCount > 3000}
-                className="flex-1 flex items-center justify-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+              >
+                <Calendar className="w-4 h-4" />
+                SCHEDULE
+              </button>
+              <button
+                onClick={handlePublishNow}
+                disabled={!content.trim() || charCount > 3000 || isPublishing}
+                className="flex items-center justify-center gap-2 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
                 style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
               >
                 <Send className="w-4 h-4" />
-                SCHEDULE
+                {isPublishing ? 'PUBLISHING...' : 'PUBLISH NOW'}
               </button>
             </div>
           </div>
