@@ -87,10 +87,14 @@ export default function LoginPage({
                 By signing in, you agree to our{' '}
                 <Link href="/terms" className="text-[#feae34] hover:text-[#f4f4f4] transition-colors">
                   Terms of Service
-                </Link>{' '}
-                and{' '}
+                </Link>
+                ,{' '}
                 <Link href="/privacy" className="text-[#feae34] hover:text-[#f4f4f4] transition-colors">
                   Privacy Policy
+                </Link>
+                {' '}and{' '}
+                <Link href="/refund" className="text-[#feae34] hover:text-[#f4f4f4] transition-colors">
+                  Refund Policy
                 </Link>
               </p>
             </div>

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { content, scheduledFor, draftId } = body;
+    const { content, scheduledFor, draftId, mediaIds } = body;
 
     if (!content || !scheduledFor) {
       return NextResponse.json(
@@ -92,6 +92,17 @@ export async function POST(request: Request) {
           },
         },
       });
+
+      // Create PostMedia records to link media assets to the post
+      if (mediaIds && Array.isArray(mediaIds) && mediaIds.length > 0) {
+        await tx.postMedia.createMany({
+          data: mediaIds.map((mediaAssetId: string, index: number) => ({
+            postId: post.id,
+            mediaAssetId,
+            order: index,
+          })),
+        });
+      }
 
       // If this was from a draft, delete the draft
       if (draftId) {

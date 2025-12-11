@@ -42,6 +42,12 @@ export function Footer() {
             >
               Terms
             </Link>
+            <Link
+              href="/refund"
+              className="font-retro text-xl text-[#94a3b8] hover:text-[#feae34] transition-colors"
+            >
+              Refund
+            </Link>
           </nav>
 
           {/* Social links */}

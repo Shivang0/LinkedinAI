@@ -225,12 +225,30 @@ export class LinkedInPublisher {
       }
       const imageBuffer = await imageResponse.arrayBuffer();
 
+      // Detect MIME type from URL extension or response headers
+      const contentTypeHeader = imageResponse.headers.get('content-type');
+      let mimeType = contentTypeHeader || 'image/jpeg';
+
+      // Fallback: detect from URL extension if header is generic
+      if (!contentTypeHeader || contentTypeHeader === 'application/octet-stream') {
+        const urlLower = mediaUrl.toLowerCase();
+        if (urlLower.includes('.png')) {
+          mimeType = 'image/png';
+        } else if (urlLower.includes('.gif')) {
+          mimeType = 'image/gif';
+        } else if (urlLower.includes('.webp')) {
+          mimeType = 'image/webp';
+        } else if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) {
+          mimeType = 'image/jpeg';
+        }
+      }
+
       // Step 3: Upload to LinkedIn
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
-          'Content-Type': 'image/jpeg', // Adjust based on actual type
+          'Content-Type': mimeType,
         },
         body: imageBuffer,
       });

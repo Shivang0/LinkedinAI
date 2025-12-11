@@ -343,6 +343,7 @@ export default function ComposePage() {
             content,
             scheduledFor: scheduledFor.toISOString(),
             draftId: draftId || undefined,
+            mediaIds: mediaFiles.map((m) => m.id),
           }),
         });
 
