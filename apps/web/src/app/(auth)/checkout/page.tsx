@@ -105,7 +105,7 @@ export default function CheckoutPage() {
               <h3 className="font-pixel text-xs text-[#f4f4f4] text-shadow-pixel">MONTHLY</h3>
             </div>
             <div className="mt-4">
-              <span className="font-pixel text-2xl text-[#feae34]">$19</span>
+              <span className="font-pixel text-2xl text-[#feae34]">$39</span>
               <span className="font-retro text-xl text-[#94a3b8]">/month</span>
             </div>
             <ul className="mt-6 space-y-3">
@@ -143,13 +143,13 @@ export default function CheckoutPage() {
               <h3 className="font-pixel text-xs text-[#0099db] text-shadow-pixel">ANNUAL</h3>
             </div>
             <div className="mt-4">
-              <span className="font-pixel text-2xl text-[#63c74d]">$190</span>
+              <span className="font-pixel text-2xl text-[#63c74d]">$390</span>
               <span className="font-retro text-xl text-[#94a3b8]">/year</span>
             </div>
-            <p className="font-retro text-base text-[#63c74d] mt-1">Just $15.83/month</p>
+            <p className="font-retro text-base text-[#63c74d] mt-1">Just $32.50/month</p>
             <ul className="mt-6 space-y-3">
               <PlanFeature>Everything in Monthly</PlanFeature>
-              <PlanFeature highlight>Save $38 per year</PlanFeature>
+              <PlanFeature highlight>Save $78 per year</PlanFeature>
               <PlanFeature>Priority support</PlanFeature>
             </ul>
             <button

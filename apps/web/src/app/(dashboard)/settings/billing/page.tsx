@@ -18,6 +18,7 @@ interface Subscription {
   status: string;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
 }
 
 export default function BillingPage() {
@@ -26,6 +27,8 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isManagingBilling, setIsManagingBilling] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -68,6 +71,50 @@ export default function BillingPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setIsManagingBilling(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel? You will still have access until the end of your billing period.')) {
+      return;
+    }
+
+    setIsCanceling(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/billing/cancel', { method: 'POST' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      fetchBillingData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    setIsResuming(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/billing/resume', { method: 'POST' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resume subscription');
+      }
+
+      fetchBillingData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsResuming(false);
     }
   };
 
@@ -150,8 +197,8 @@ export default function BillingPage() {
                   </p>
                   <p className="font-retro text-xl text-[#94a3b8]">
                     {subscription.plan.includes('monthly')
-                      ? '$19 per month'
-                      : '$190 per year (save $38)'}
+                      ? '$39 per month'
+                      : '$390 per year (save $78)'}
                   </p>
                 </div>
                 <span
@@ -175,6 +222,8 @@ export default function BillingPage() {
                   <span className="text-[#94a3b8]">
                     {subscription.status === 'canceled'
                       ? 'Access ends'
+                      : subscription.cancelAtPeriodEnd
+                      ? 'Cancels on'
                       : 'Next billing date'}
                   </span>
                   <span className="text-[#f4f4f4]">
@@ -190,17 +239,53 @@ export default function BillingPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleManageBilling}
-                disabled={isManagingBilling}
-                className="w-full font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
-                style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
-              >
-                {isManagingBilling ? 'OPENING...' : 'MANAGE SUBSCRIPTION'}
-              </button>
+              {subscription.cancelAtPeriodEnd && (
+                <div className="p-4 bg-[#feae34]/20 border-2 border-[#feae34]">
+                  <p className="font-retro text-lg text-[#feae34]">
+                    Your subscription will be canceled on{' '}
+                    {new Date(subscription.currentPeriodEnd!).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                    . You will still have access until then.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleManageBilling}
+                  disabled={isManagingBilling}
+                  className="flex-1 font-retro text-lg bg-[#0099db] hover:bg-[#0077a8] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                  style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+                >
+                  {isManagingBilling ? 'OPENING...' : 'MANAGE BILLING'}
+                </button>
+
+                {subscription.cancelAtPeriodEnd ? (
+                  <button
+                    onClick={handleResumeSubscription}
+                    disabled={isResuming}
+                    className="flex-1 font-retro text-lg bg-[#63c74d] hover:bg-[#4da63a] text-[#1a1c2c] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                    style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+                  >
+                    {isResuming ? 'RESUMING...' : 'RESUME SUBSCRIPTION'}
+                  </button>
+                ) : subscription.status !== 'canceled' && (
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={isCanceling}
+                    className="flex-1 font-retro text-lg bg-[#e43b44] hover:bg-[#c42f37] text-[#f4f4f4] border-4 border-[#f4f4f4] px-4 py-3 transition-all hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50"
+                    style={{ boxShadow: '4px 4px 0 #0a0a0f' }}
+                  >
+                    {isCanceling ? 'CANCELING...' : 'CANCEL SUBSCRIPTION'}
+                  </button>
+                )}
+              </div>
 
               <p className="font-retro text-base text-[#94a3b8] text-center">
-                Update payment method, change plan, or cancel subscription
+                Manage payment method via billing portal
               </p>
             </div>
           ) : (

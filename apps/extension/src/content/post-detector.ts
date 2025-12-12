@@ -8,23 +8,35 @@ import type { LinkedInPostContext } from '@/shared/types/messages';
 export function extractPostData(postElement: HTMLElement, urn: string): LinkedInPostContext | null {
   try {
     // First, expand "see more" if present to get full content
+    // BUT only within the post's text content area, not profile buttons
     const seeMoreSelectors = [
-      'button.see-more',
       '.feed-shared-inline-show-more-text__see-more-less-toggle',
-      '[data-tracking-control-name*="see_more"]',
-      'button[aria-label*="see more"]',
+      'button.see-more',
     ];
 
+    // Only search within post content area, not the entire element
+    // This prevents clicking "See all posts" buttons on profile pages
+    const contentArea = postElement.querySelector('.feed-shared-text, .feed-shared-update-v2__description, .update-components-text');
+    const searchArea = contentArea || postElement;
+
     for (const selector of seeMoreSelectors) {
-      const seeMoreBtn = postElement.querySelector(selector) as HTMLElement;
-      if (seeMoreBtn && seeMoreBtn.textContent?.toLowerCase().includes('more')) {
-        try {
-          seeMoreBtn.click();
-          console.log('[LinkedIn AI] Clicked "see more" to expand content');
-        } catch (e) {
-          // Ignore click errors
+      const seeMoreBtn = searchArea.querySelector(selector) as HTMLElement;
+      if (seeMoreBtn) {
+        // Validate this is a content expansion button, not a navigation link
+        const isNavigationButton =
+          seeMoreBtn.closest('a') !== null ||
+          seeMoreBtn.getAttribute('aria-label')?.toLowerCase().includes('posts') ||
+          seeMoreBtn.getAttribute('aria-label')?.toLowerCase().includes('all');
+
+        if (!isNavigationButton && seeMoreBtn.textContent?.toLowerCase().includes('more')) {
+          try {
+            seeMoreBtn.click();
+            console.log('[LinkedIn AI] Clicked "see more" to expand content');
+          } catch (e) {
+            // Ignore click errors
+          }
+          break;
         }
-        break;
       }
     }
 

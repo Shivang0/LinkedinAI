@@ -62,7 +62,7 @@ export function HeroSection() {
 
           <ScrollAnimator animation="up" delay={400}>
             <p className="font-retro text-lg text-[#94a3b8]">
-              $19/MONTH - CANCEL ANYTIME
+              $39/MONTH - CANCEL ANYTIME
             </p>
           </ScrollAnimator>
         </div>

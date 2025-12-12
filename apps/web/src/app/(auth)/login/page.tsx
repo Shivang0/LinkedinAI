@@ -105,7 +105,7 @@ export default function LoginPage({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Star className="w-4 h-4 text-[#feae34]" />
                 <p className="font-retro text-xl text-[#63c74d]">
-                  $19/month for unlimited AI posts
+                  $39/month for unlimited AI posts
                 </p>
                 <Star className="w-4 h-4 text-[#feae34]" />
               </div>

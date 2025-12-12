@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Press_Start_2P, VT323 } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { Providers } from './providers';
 
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${pressStart2P.variable} ${vt323.variable} antialiased`}>
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );

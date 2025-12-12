@@ -64,7 +64,7 @@ export function PricingSection() {
                       </span>
                     </div>
                     <span className="font-pixel text-3xl md:text-4xl text-[#f4f4f4]">
-                      19
+                      39
                     </span>
                   </div>
                   <span className="font-retro text-2xl text-[#94a3b8]">
@@ -144,14 +144,14 @@ export function PricingSection() {
                       </span>
                     </div>
                     <span className="font-pixel text-3xl md:text-4xl text-[#63c74d]">
-                      190
+                      390
                     </span>
                   </div>
                   <span className="font-retro text-2xl text-[#94a3b8]">
                     /year
                   </span>
                   <p className="font-retro text-lg text-[#63c74d] mt-2">
-                    Just $15.83/month
+                    Just $32.50/month
                   </p>
                 </div>
 
@@ -170,7 +170,7 @@ export function PricingSection() {
                       <Check className="w-3 h-3 text-[#1a1c2c]" />
                     </div>
                     <span className="font-retro text-lg text-[#63c74d]">
-                      Save $38 per year
+                      Save $78 per year
                     </span>
                   </li>
                   <li className="flex items-center gap-3">

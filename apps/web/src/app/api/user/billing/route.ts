@@ -18,6 +18,7 @@ export async function GET() {
         status: true,
         currentPeriodStart: true,
         currentPeriodEnd: true,
+        cancelAtPeriodEnd: true,
       },
     }),
     prisma.invoice.findMany({

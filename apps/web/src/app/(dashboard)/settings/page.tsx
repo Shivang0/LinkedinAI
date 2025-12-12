@@ -219,8 +219,8 @@ export default function SettingsPage() {
                   </p>
                   <p className="font-retro text-lg text-[#94a3b8]">
                     {subscription.plan === 'monthly'
-                      ? '$19/month'
-                      : '$190/year (save $38)'}
+                      ? '$39/month'
+                      : '$390/year (save $78)'}
                   </p>
                 </div>
                 <span
